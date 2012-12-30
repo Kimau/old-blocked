@@ -5,13 +5,51 @@
    div {
     margin: 2px;
     padding: 4px;
+    vertical-align: top;
    }
 
    .artist { background: #FFA; }
    .blockList { background: #CCC; }
-   #blockData { background: #FCC; white-space: pre-wrap; font-family: monospace; }
-   #palData { background: #CFC; }
-   #linkData { background: #CCF; }
+
+   #blockDisplay {
+    background: #a7cfdf; /* Old browsers */
+    background: -moz-linear-gradient(top,  #a7cfdf 0%, #23538a 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#a7cfdf), color-stop(100%,#23538a)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #a7cfdf 0%,#23538a 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #a7cfdf 0%,#23538a 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #a7cfdf 0%,#23538a 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #a7cfdf 0%,#23538a 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a7cfdf', endColorstr='#23538a',GradientType=0 ); /* IE6-9 */
+
+    display: inline-block;
+    width:45%;
+   }
+
+   .block {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin: 1px;
+    border: 1px solid #000;
+    }
+
+   #blockData { 
+    background: #FCC; 
+    white-space: pre-wrap; 
+    font-family: monospace; 
+    width: 45%; 
+    display:inline-block;
+  }
+
+   #palData { 
+    background: #CFC; 
+    width: 45%; 
+    display:inline-block; 
+   }
+
+   #linkData { 
+    background: #CCF; 
+  }
 
   </style>
   <script type="text/javascript">
@@ -23,6 +61,7 @@
    var linkData = new Uint8Array(200);
 
    function $(id) { return document.getElementById(id); }
+   function col(x) { return 'rgba(' + Math.floor(x[0]*255) + ',' + Math.floor(x[1]*255) + ',' + Math.floor(x[2]*255) + ',' + x[3] + ')'}
    function argToParams(args) { return '?' + JSON.stringify(args).replace(new RegExp('[{}"]','g'),'').replace(new RegExp(':','g'),'=').replace(new RegExp(',','g'),'&'); }
    function aHex(x,i)
    {
@@ -106,6 +145,48 @@
       } 
    }
 
+   function makBlock(data)
+   {
+    var blk = document.createElement('span');
+    blk.className = 'block';
+
+    var notEmpty = true;
+    var blkCol;
+    var borderCol;
+
+    switch(data & 7)
+    {
+      case 0: notEmpty = false; break;
+      case 1: blkCol = [1.0,1.0,1.0,1.0]; break;
+      case 2: blkCol = [0.8,0.8,0.8,1.0]; break;
+      case 3: blkCol = [0.6,0.6,0.6,1.0]; break;
+      case 4: blkCol = [0.4,0.4,0.4,1.0]; break;
+      case 5: blkCol = [0.2,0.2,0.2,1.0]; break;
+      case 6: blkCol = [0.0,0.0,0.0,1.0]; break;
+      case 7: borderCol = [1,0,0,1]; break;
+    }
+
+    if(data & 8)
+    {
+      blk.style.setProperty('box-shadow','1px 1px ' + col([0,0,0,0.6]));
+    }
+
+    if(notEmpty)
+    {
+      if(blkCol)
+        blk.style.setProperty('background-color', col(blkCol));
+
+      if(borderCol)
+        blk.style.setProperty('border-color', col(borderCol));
+    }
+    else
+    {
+      blk.style.setProperty('border','1px dashed #000');
+    }
+
+    return blk;
+   }
+
    function processData()
    {
     $('blockData').innerHTML =  '';
@@ -115,12 +196,23 @@
       if(i > 0)
       {
         if((i % 8) == 0)
+        {
           $('blockData').innerHTML += '\n';
+          $('blockDisplay').innerHTML += '<br/>';
+        }
+
         if((i % 64) == 0)
+        {
           $('blockData').innerHTML += '\n';
+          $('blockDisplay').innerHTML += '<hr/>';
+        }
       }
 
       $('blockData').innerHTML += aHex(blockData[i],4) + ' ';
+
+      var tmpBlk = makBlock(blockData[i]);
+      tmpBlk.classList.add('b' + i);
+      $('blockDisplay').appendChild(tmpBlk);
     };
 
     $('palData').innerHTML =  '';
@@ -217,12 +309,14 @@
      {% endfor %}
     </ul></div>
 
-    <div id="blockData">
-      {{ blockData|escape }}
+    <div>
+      <div id="blockData">{{ blockData|escape }}</div>
+      <div id="blockDisplay"></div>
     </div>
 
-    <div id="palData">
-      {{ palData|escape }}
+    <div>
+      <div id="palData">{{ palData|escape }}</div>
+      <div id="blockDisplay"></div>
     </div>
 
     <div id="linkData">

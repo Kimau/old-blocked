@@ -51,9 +51,9 @@ class Block(db.Model):
 	blockID  = db.IntegerProperty(required=True)						# Block Number
 
 # 0 Core   - 3bit - NO DATA - Empty, Shading White 100%, 80%, 60%, 40%, 20%, 0%, Self Ref
+#          - 1bit - LINK Flag
 # 1 Colour - 3bit - 8x 24Bit Web RGB - +1 bit if not first colour pal
 # 2 Alpha  - 2bit - NO DATA - 100%, 75%, 50%, 25%
-# 3 Link   - 1bit - NO DATA - Links are childed 
 # 4 Smooth - 1bit - NO DATA -
 # 5 Shape  - 3bit - Shape Date *shrug unkown*
 class BlockVer(db.Model):
