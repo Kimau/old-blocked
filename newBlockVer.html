@@ -1,0 +1,237 @@
+<html>
+<head>
+  <title>New Block Version Submission</title>
+  <style type="text/css">
+   div {
+    margin: 2px;
+    padding: 4px;
+   }
+
+   .artist { background: #FFA; }
+   .blockList { background: #CCC; }
+   #blockData { background: #FCC; white-space: pre-wrap; font-family: monospace; }
+   #palData { background: #CFC; }
+   #linkData { background: #CCF; }
+
+  </style>
+  <script type="text/javascript">
+   var rawResponse;
+   var lastResponse;
+
+   var blockData = new Uint16Array(8*8*8);
+   var palData = new Uint8Array(200);
+   var linkData = new Uint8Array(200);
+
+   function $(id) { return document.getElementById(id); }
+   function argToParams(args) { return '?' + JSON.stringify(args).replace(new RegExp('[{}"]','g'),'').replace(new RegExp(':','g'),'=').replace(new RegExp(',','g'),'&'); }
+   function aHex(x,i)
+   {
+      var h = x.toString(16);
+      while(h.length < i) { h = '0' + h; }
+      return h.toUpperCase();
+    }
+
+   function BitsToBig(x,num)
+   {
+      var c = 0; 
+      var s = []; 
+
+      for(var i=0; i<x.length;++i) 
+      {
+        if(x[i] >= num) 
+        { 
+          s = s.concat(c); 
+          c = 0; 
+        } 
+        else 
+        { 
+          c = c*num + x[i]; 
+        } 
+      } 
+
+      if(c > 0)
+        s = s.concat(c);
+
+      return s;
+    }
+
+   function MakeBit(x,num)
+   {
+      if(x==0)
+        return [0];
+
+      var y =[]
+      while(x > 0) 
+      { 
+        var r = x % num; 
+        y = y.concat(r); 
+        x = Math.floor(x / num); 
+      } 
+      y = y.reverse(); 
+      return y;
+    }
+
+   function BigToBits(x,num)
+   {
+      var y = [];
+      for(var i = 0; i < x.length; ++i)
+      {
+        if(i != 0)
+          y = y.concat(num);
+
+        y = y.concat(MakeBit(x[i], num));
+      }
+
+      return y;
+   }
+
+   function processMessage(e)
+   {
+      if(this.status == 200) 
+      {
+        lastResponse = this;
+
+        rawResponse = this.response;
+        console.log(rawResponse);
+
+        var szBlock = Number(this.getResponseHeader('szBlock'));
+        var szPal   = Number(this.getResponseHeader('szPal'));
+        var szLink  = Number(this.getResponseHeader('szLink'));
+
+        blockData = new Uint16Array(rawResponse, 0, szBlock / 2);
+        palData   = new Uint8Array(rawResponse, szBlock, szPal);
+        linkData  = new Uint8Array(rawResponse, szBlock+szPal, szLink);
+
+        processData();
+      } 
+   }
+
+   function processData()
+   {
+    $('blockData').innerHTML =  '';
+
+    for (var i = 0; i < blockData.length; i++) 
+    {
+      if(i > 0)
+      {
+        if((i % 8) == 0)
+          $('blockData').innerHTML += '\n';
+        if((i % 64) == 0)
+          $('blockData').innerHTML += '\n';
+      }
+
+      $('blockData').innerHTML += aHex(blockData[i],4) + ' ';
+    };
+
+    $('palData').innerHTML =  '';
+
+    for (var i = 0; i < palData.length; i++) 
+    {
+      if(i > 0)
+      {
+        if((i % 8) == 0)
+          $('palData').innerHTML += '\n';
+        if((i % 64) == 0)
+          $('palData').innerHTML += '\n';
+      }
+
+      $('palData').innerHTML += aHex(palData[i],2) + ' ';
+    };
+
+    linkData = BitsToBig(linkData,255);
+
+    $('linkData').innerHTML = '<ul>';
+    for (var i = 0; i < linkData.length; i += 2) 
+    {
+      $('linkData').innerHTML += '<li>' + linkData[i] + ':' + linkData[i+1] + '</li>';
+    }
+
+    $('linkData').innerHTML += '</ul>';
+   }
+
+   function doJSSubmit()
+   {
+    // Random Data
+    blockData = new Uint16Array(8*8*8);
+    for (var i = 0; i < (8*8*8); i++) {
+      blockData[i] = Math.floor(Math.random() * 65535);
+    };
+
+    palData = new Uint8Array(Math.floor(Math.random()*200));
+    for (var i = 0; i < palData.length; i++) {
+      palData[i] = Math.floor(Math.random() * 256);
+    };
+
+    var y = [];
+    for(var c = Math.floor(Math.random()*15); c >= 0; --c)
+    {
+      y = y.concat([Math.floor(Math.random() * 10000000), Math.floor(Math.random() * 50000)]);
+    }
+
+    oldLink = y;
+    y = BigToBits(y,255);
+
+    console.log(oldLink);
+    console.log(y);
+
+    linkData = new Uint8Array(y.length)
+    linkData.set(y);
+
+    // Arguments
+    var args = {
+      'szBlock' : blockData.byteLength,
+      'szPal': palData.byteLength,
+      'szLink' : linkData.byteLength
+    };
+
+    // Setup Transfer Data
+    var bugger = new ArrayBuffer(blockData.byteLength + palData.byteLength + linkData.byteLength);
+    var cpyBData = new Uint16Array(bugger, 0, blockData.length);
+    var cpyPData = new Uint8Array(bugger, blockData.byteLength, palData.length);
+    var cpyLData = new Uint8Array(bugger, blockData.byteLength + palData.byteLength, linkData.length);
+
+    cpyBData.set(blockData);
+    cpyPData.set(palData);
+    cpyLData.set(linkData);
+
+    console.log(blockData.byteLength + palData.byteLength + linkData.byteLength);
+    console.log(blockData.length + palData.length + linkData.length);
+
+    // Setup and Send
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/blockEditor' + argToParams(args), true);
+    xhr.responseType = 'arraybuffer';
+    xhr.setRequestHeader('Content-Type','application/octlet;base64')
+    xhr.onload = processMessage;
+    xhr.send(bugger);
+   }
+  </script>
+</head>
+  <body>
+    <div class="artist"><h2>Artist #{{artistID}}</h2></div>
+    <span onclick="doJSSubmit();">BOOM</span>
+
+    <div class="blockList"><ul>
+     {% for block in blockList %}
+      <li><b>{{ block.blockID }}</b></li>
+     {% endfor %}
+    </ul></div>
+
+    <div id="blockData">
+      {{ blockData|escape }}
+    </div>
+
+    <div id="palData">
+      {{ palData|escape }}
+    </div>
+
+    <div id="linkData">
+      {{ linkData|escape }}
+    </div>
+
+    <form action="/block" method="post" enctype="multipart/form-data" >
+      <div>Block #<input name="blockID" type="number" value="{{blockID}}" min="0" /></div>
+    </form>
+
+  </body>
+</html>
