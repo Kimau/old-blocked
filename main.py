@@ -50,12 +50,35 @@ class BlockArtist(db.Model):
 class Block(db.Model):
 	blockID  = db.IntegerProperty(required=True)						# Block Number
 
-# 0 Core   - 3bit - NO DATA - Empty, Shading White 100%, 80%, 60%, 40%, 20%, 0%, Self Ref
-#          - 1bit - LINK Flag
-# 1 Colour - 3bit - 8x 24Bit Web RGB - +1 bit if not first colour pal
-# 2 Alpha  - 2bit - NO DATA - 100%, 75%, 50%, 25%
-# 4 Smooth - 1bit - NO DATA -
-# 5 Shape  - 3bit - Shape Date *shrug unkown*
+# Core      - 1bit - SOLID Flag 
+#           - 1bit - LINK Flag
+
+# Colour Palette
+# [10] 0bit - 1x  24Bit Web RGB   24 [0*512+ 1*24 =    0 +  24 =   24]
+# [11] 1bit - 8x  24Bit Web RGB   48 [1*512+ 2*24 =  512 +  48 =  560]
+# [12] 2bit - 8x  24Bit Web RGB  180 [2*512+ 4*24 = 1024 + 180 = 1120]
+# [13] 3bit - 8x  24Bit Web RGB  360 [3*512+ 8*24 = 2048 + 360 = 1728]
+# [14] 4bit - 16x 24Bit Web RGB  720 [4*512+16*24 = 4096 + 720 = 2432]
+
+# Alpha Palette
+# [20] 0bit - 100
+# [20] 1bit - 100, 50
+# [21] 2bit - 100, 75, 50, 25
+# [22] 3bit - 100, 87, 74, 61, 48, 35, 22, 9
+
+# Blend Palette
+# [30] Multiply - 0bit - Stop Inheritence
+# [31] Multiply - 1bit - 0, 50  - 24Bit Web RGB - 
+# [32] Multiply - 2bit - 0, 33, 66, 100  - 24Bit Web RGB - 
+# [33] Multiply - 3bit - 0, 10, 25, 40, 55, 70, 85, 100 - 24Bit Web RGB - 
+
+# Smoothing Palette
+# [40] 0bit - Stop Smoothing
+# [41] 1bit - Not Smooth, Smooth
+# [42] 2bit - Not Smooth, 3 x Smoothing Groups
+
+# 50 Shape  - 3bit - Shape Date *shrug unkown*
+
 class BlockVer(db.Model):
 	date      = db.DateTimeProperty(auto_now_add=True)
 	blockData = db.BlobProperty(required=True)						# Save Data
