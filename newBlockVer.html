@@ -48,6 +48,7 @@
     .layer:nth-child(8) { left:  0px; top:  0px; }
 
     .hidden { display: none; }
+    .faded  { opacity: 0.3; }
 
     #palDisplay
     {
@@ -72,6 +73,14 @@
       height: 20px;
       margin: 2px;
       border: 1px solid #000;
+    }
+
+    .block > em { display: none; }
+
+    .block:hover > em { 
+      display: block;
+      position: absolute;
+      left: 400px;
     }
 
     .blkLink {
@@ -132,7 +141,45 @@
 
     .bitsPerBlock {
       display: block;
+      padding: 4px;
     }
+
+    .bitmapblk { 
+      position: relative;
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      border: 1px dashed #888;
+      margin: 0px;
+      width: 8px;
+      height: 8px;
+    }
+    
+    .bitmapblk.empty  { background : #000; border: 1px solid #111; }
+    .bitmapblk.link   { background : #FFF; border: 1px solid #333; }
+    .bitmapblk.colour { background : #F00; border: 1px solid #311; }
+    .bitmapblk.alpha  { background : #0F0; border: 1px solid #131; }
+    .bitmapblk.shade  { background : #00F; border: 1px solid #113; }
+    .bitmapblk.smooth { background : #F0F; border: 1px solid #331; }
+
+    .bitmapblk:hover:after 
+    { 
+      position: absolute; 
+      bottom: 10px;
+      right: 10px; 
+      display: block; 
+      background: #FFF; 
+      content:"<unused>"; 
+      padding: 4px;
+      border: 1px solid rgba(0,0,0,0.5);
+      box-shadow: 3px 3px 3px rgba(0,0,0,0.3);
+    }
+    
+    .bitmapblk.empty:hover:after  { content:"Solidity";}
+    .bitmapblk.link:hover:after   { content:"Link";}
+    .bitmapblk.colour:hover:after { content:"Colour";}
+    .bitmapblk.alpha:hover:after  { content:"Alpha";}
+    .bitmapblk.shade:hover:after  { content:"Shading";}
+    .bitmapblk.smooth:hover:after { content:"Smooth";}
 
     .pal {
       margin: 2px 0px 2px 0px;
@@ -147,6 +194,11 @@
       border-bottom: dashed 1px rgba(0,0,0,0.5);
     }
 
+    .pal h4 {
+      margin: 3px 0px 0px 0px;
+      padding: 2px;
+    }
+
     .bitsUsed {
       display: block;
       text-align: right;
@@ -154,18 +206,35 @@
 
     .blot {
       display: inline-block;
-      width: 28px;
+      min-width: 28px;
       height: 28px;
       margin: 4px;
       border: 2px dotted rgba(255,255,255,0.5);
-      box-shadow: 2px 2px 2px rgba(0,0,0,0.4);
+      box-shadow: 3px 3px 3px rgba(0,0,0,0.4);
       border-radius: 16px;
+      position: relative;
+      top: -2px;
+      left: -2px;
+      vertical-align: top;
     }
+
+    .blot:hover, .blot.active {
+      border: 2px solid rgba(0,0,0,0.8);
+      box-shadow: 0px 0px 4px #000;
+      top: 0px;
+      left: 0px;
+    }
+
+    .blot.active { border-radius: 2px; }
 
     .method {
       display: block;
       padding: 2px;
       text-align: center;
+    }
+
+    #artistLinkID, #cubeLinkID {
+      width: 45%;
     }
 
   </style>
@@ -315,6 +384,7 @@ function StepDown(numSteps, mod)
 var rawResponse;
 var lastResponse;
 var shadingMethods = {0: 'multiply',1: 'blend'};
+var selectedBlot;
 
 var currBlock = 
 {
@@ -345,6 +415,7 @@ for (var i = 0; i < (currBlock.size * currBlock.size * currBlock.size); ++i)
   newBlock.shade = Math.floor(Math.random() * (Math.pow(2, currBlock.palShade.bits)));
   newBlock.smooth = undefined;
   
+  /* No more random links needed
   if (Math.random() < 0.25) 
   {
     newBlock.link = [Math.floor(Math.random() * 10000000), Math.floor(Math.random() * 50000)];
@@ -352,7 +423,7 @@ for (var i = 0; i < (currBlock.size * currBlock.size * currBlock.size); ++i)
   else 
   {
     newBlock.link = undefined;
-  }
+  }*/
   
   currBlock.blkBits = currBlock.blkBits.concat(newBlock);
 }
@@ -366,6 +437,41 @@ for (var i = 0; i < (currBlock.size * currBlock.size * currBlock.size); ++i)
 //                                        |_____\___/ \__, |_|\___|
 //                                                    |___/        
 //----------------------------------------------------------------------------------
+function BitMapForBlockBit(block)
+{
+  var b = 2;
+  var x =[['empty', 1],['link',1]];
+
+  if (block.palColour && block.palColour.bits)
+  {
+    x = x.concat([['colour',block.palColour.bits]]);
+    b += block.palColour.bits;
+  }
+  
+  if (block.palAlpha && block.palAlpha.bits)
+  {
+    x = x.concat([['alpha',block.palAlpha.bits]]);
+    b += block.palAlpha.bits;
+  }
+  
+  if (block.palShade && block.palShade.bits)
+  {
+    x = x.concat([['shade',block.palShade.bits]]);
+    b += block.palShade.bits;
+  }
+  
+  if (block.palSmooth && block.palSmooth.bits)
+  {
+    x = x.concat([['smooth',block.palSmooth.bits]]);
+    b += block.palSmooth.bits;
+  }
+
+  if(b < 8)
+    x = x.concat([['',8 - b]]);
+
+  return x.reverse();
+}
+
 function NumBitsPerBlockBit(block) 
 {
   var x = 2;
@@ -731,10 +837,15 @@ function processMessage(e)
   }
 }
 
-function makBlockBit(blkBit) 
+function MakeBlockDomElem(blkBit,i) 
 {
   var blk = document.createElement('span');
   blk.className = 'block';
+  blk.id = 'BB' + i;
+
+  var innerJsonDebug = document.createElement('em');
+  innerJsonDebug.innerHTML = JSON.stringify(blkBit);
+  blk.appendChild(innerJsonDebug);
   
   if (blkBit.empty) 
   {
@@ -742,7 +853,7 @@ function makBlockBit(blkBit)
   } 
   else 
   {
-    var colour = [1, 1, 1];
+    var colour = [1, 1, 1, 1];
     
     if (blkBit.colour && currBlock.palColour && currBlock.palColour.bits) 
     {
@@ -773,7 +884,7 @@ function makBlockBit(blkBit)
     
     if (blkBit.alpha && currBlock.palAlpha && currBlock.palAlpha.bits) 
     {
-      colour[3] = currBlock.palAlpha.scale[blkBit.alpha];
+      colour[3] = currBlock.palAlpha.scale[blkBit.alpha]/100;
     }
     
     blk.style.setProperty('background-color', toCssCol(colour));
@@ -795,6 +906,10 @@ function makBlockBit(blkBit)
   {
     blk.classList.add('blkSmooth');
   }
+
+  // Add On Click
+  var makeClickFunc = function(id){ return function(){SelectBlk(id);}};
+  blk.onclick = makeClickFunc(i);
   
   return blk;
 }
@@ -803,21 +918,36 @@ function UpdatePalDisplay()
 {
   var palDisplay = $('palDisplay');
   palDisplay.innerHTML = '';
+  selectedBlot = undefined;
 
   // Update Pal Display
   s = '';
   s += '<span class="artistID">Artist #' + currBlock.artistID + '</span>';
   s += '<span class="blockID">Block #' + currBlock.artistID + '</span>';
-  s += '<span class="bitsPerBlock">' + NumBitsPerBlockBit(currBlock) + '</span>';
+
+  var x = BitMapForBlockBit(currBlock);
+  s += '<span class="bitsPerBlock"><b>Bits per Block</b>:';
+  for(var i=0; i<x.length;++i) 
+    for(var b=0; b < x[i][1]; ++b) 
+      s += '<span class="bitmapblk ' + x[i][0] + '" ></span>';
+  s += '</span>'
+
+  s += '<div class="pal"><h3>Solidity  [<span class="bitmapblk empty" ></span>]</h3>';
+  s += '<span class="blot" onclick="' + "SelectBlot(this,'empty',1);" + '" style="background-color: rgba(0,0,0,0);"></span>';
+  s += '<span class="blot" onclick="' + "SelectBlot(this,'empty',0);" + '" style="background-color: rgba(255,255,255,1);"></span>';
+  s += '</div>';
   
   if (currBlock.palColour) 
   {
     s += '<div class="pal palColour">';
-    s += '<h3>Colour Pallette</h3>';
-    s += '<span class="bitsUsed">' + currBlock.palColour.bits + '</span>';
+    s += '<h3>Colour Pallette  [';
+    for(var b=0; b < currBlock.palColour.bits; ++b) 
+      s += '<span class="bitmapblk colour" ></span>';
+    s += ']</h3>';
+
     for (var i = 0; i < currBlock.palColour.colours.length; i++) 
     {
-      s += '<span class="blot" style="background-color:' + rgb(currBlock.palColour.colours[i]) + ';"></span>';
+      s += '<span class="blot" onclick="' + "SelectBlot(this,'colour'," + i + ');" style="background-color:' + rgb(currBlock.palColour.colours[i]) + ';"></span>';
     }
 
     s += '</div>'
@@ -826,11 +956,14 @@ function UpdatePalDisplay()
   if (currBlock.palAlpha) 
   {
     s += '<div class="pal palAlpha">';
-    s += '<h3>Alpha Pallette</h3>';
-    s += '<span class="bitsUsed">' + currBlock.palAlpha.bits + '</span>';
+    s += '<h3>Alpha Pallette  [';
+    for(var b=0; b < currBlock.palAlpha.bits; ++b) 
+      s += '<span class="bitmapblk alpha" ></span>';
+    s += ']</h3>';
+
     for (var i = 0; i < currBlock.palAlpha.scale.length; i++) 
     {
-      s += '<span class="blot" style="background-color:' + rgba([0, 0, 0, currBlock.palAlpha.scale[i] / 100]) + ';"></span>';
+      s += '<span class="blot" onclick="' + "SelectBlot(this,'alpha'," + i + ');" style="background-color:' + rgba([0, 0, 0, currBlock.palAlpha.scale[i] / 100]) + ';"></span>';
     }
 
     s += '</div>'
@@ -839,12 +972,15 @@ function UpdatePalDisplay()
   if (currBlock.palShade) 
   {
     s += '<div class="pal palShade">';
-    s += '<h3>Shading Pallette</h3>';
-    s += '<span class="bitsUsed">' + currBlock.palShade.bits + '</span>';
+    s += '<h3>Shading Pallette  [';
+    for(var b=0; b < currBlock.palShade.bits; ++b) 
+      s += '<span class="bitmapblk shade" ></span>';
+    s += ']</h3>';
+
     s += '<span class="method">' + shadingMethods[currBlock.palShade.method] + '</span>';
     for (var i = 0; i < currBlock.palShade.scale.length; i++) 
     {
-      s += '<span class="blot" style="background-color:' + rgba([currBlock.palShade.colour[0], currBlock.palShade.colour[1], currBlock.palShade.colour[2], currBlock.palShade.scale[i] / 100]) + ';"></span>';
+      s += '<span class="blot" onclick="' + "SelectBlot(this,'colour'," + i + ');" style="background-color:' + rgba([currBlock.palShade.colour[0], currBlock.palShade.colour[1], currBlock.palShade.colour[2], currBlock.palShade.scale[i] / 100]) + ';"></span>';
     }
 
     s += '</div>'
@@ -853,14 +989,29 @@ function UpdatePalDisplay()
   if (currBlock.palSmooth) 
   {
     s += '<div class="pal palSmooth">';
-    s += '<h3>Smoothing Pallette</h3>';
-    s += '<span class="bitsUsed">' + currBlock.palSmooth.bits + '</span>';
+    s += '<h3>Smoothing Pallette  [';
+    for(var b=0; b < currBlock.palSmooth.bits; ++b) 
+      s += '<span class="bitmapblk smooth" ></span>';
+    s += ']</h3>';
+
     s += '</div>'
   }
-  
-  console.log(s);
-  
+
+  s += '<div class="pal"><h3>Link Pallette [<span class="bitmapblk link" ></span>]</h3>';
+  s += '<span class="blot" onclick="' + "SelectBlot(this,'link',undefined);" + '" style="background-color: rgba(0,0,0,0);"></span>';
+  s += '<span class="blot" onclick="GetAndSetLinkBlot(this);" style="background-color: rgba(255,255,255,1);"></span>';
+  s += '<h4>Link to Artist:Cube</h4>'
+  s += '<input id="artistLinkID" type="number" min="0" />:<input id="cubeLinkID" type="number" min="0" />';
+  s += '</div>';
+    
   palDisplay.innerHTML = s;
+}
+
+function GetAndSetLinkBlot(caller)
+{
+  var linkVal = [Number($("artistLinkID").value), Number($("cubeLinkID").value)];
+  SelectBlot(caller, 'link', linkVal);  
+  caller.innerHTML = linkVal[0] + ':' + linkVal[1];
 }
 
 function UpdateCubeDisplay() 
@@ -886,13 +1037,21 @@ function UpdateCubeDisplay()
     } 
     else if ((i % 8) == 0)
       currLayer.innerHTML += '<br />';
-    
-    currLayer.appendChild(makBlockBit(currBlock.blkBits[i]));
+
+    currLayer.appendChild(MakeBlockDomElem(currBlock.blkBits[i],i));
   }
 
-  
   blkDisplay.appendChild(currLayer);
 
+  var makeClickFunc = function(i){ return function(){SelectBlk(i);}};
+
+  var blkElemList = blkDisplay.getElementsByClassName('block'); 
+  for (var i = 0; i < blkElemList.length; i++) 
+  {
+    blkElemList[i].onclick = makeClickFunc(i);
+  }
+
+  SelectLayer($('layerSlider').value);
 }
 
 function doJSSubmit() 
@@ -981,10 +1140,43 @@ function SelectLayer(x)
   var layers = document.getElementsByClassName("layer");
   
   for (var i = 0; i < layers.length; ++i)
-    if (i <= x)
+  {
+    if (i == x)
+    {
       layers[i].classList.remove('hidden');
+      layers[i].classList.remove('faded');
+    }
+    else if (i < x)
+    {
+      layers[i].classList.remove('hidden');
+      layers[i].classList.add('faded');
+    }
     else
       layers[i].classList.add('hidden');
+  }
+}
+
+function SelectBlot(caller, pal,val)
+{
+  selectedBlot = [pal, val];
+  console.log('Selected Blot : ' + selectedBlot);
+
+  var bList = document.getElementsByClassName('blot');
+  for(var i=0; i< bList.length; ++i)
+    bList[i].classList.remove('active');
+  caller.classList.add('active');
+}
+
+function SelectBlk(id)
+{
+  var blk = $('BB' + id);
+
+  if(selectedBlot)
+  {
+    currBlock.blkBits[id][selectedBlot[0]] = selectedBlot[1];
+  }
+
+  blk.parentElement.replaceChild(MakeBlockDomElem(currBlock.blkBits[id],id),blk);
 }
 
 //=========================================================================================================
@@ -1000,7 +1192,7 @@ function SelectLayer(x)
     <div id="palDisplay"></div>
     <div id="blockDisplay"></div>
     <div style="display: inline-block;" >
-      <input type="range" min="0" max="7" 
+      <input type="range" min="0" max="7" id="layerSlider"
           onchange="SelectLayer(this.value);" 
           style="-webkit-appearance: slider-vertical; width: 50px; height: 200px;"/>
     </div>
