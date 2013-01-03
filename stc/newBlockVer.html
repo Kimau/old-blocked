@@ -1,0 +1,262 @@
+<html>
+<head>
+  <title>New Block Version Submission</title>
+  <style type="text/css">
+    div {
+      margin: 2px;
+      padding: 4px;
+      vertical-align: top;
+    }
+
+    .submitButton { display: block; padding: 4px; background: #222; color: #DDD; font-size: 300%; text-align: center; }
+
+    .artist { background: #FFA; }
+    .blockList { background: #CCC; }
+
+    #blockDisplay {
+      background: #a7cfdf; /* Old browsers */
+      background: -moz-linear-gradient(top,  #a7cfdf 0%, #23538a 100%); /* FF3.6+ */
+      background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#a7cfdf), color-stop(100%,#23538a)); /* Chrome,Safari4+ */
+      background: -webkit-linear-gradient(top,  #a7cfdf 0%,#23538a 100%); /* Chrome10+,Safari5.1+ */
+      background: -o-linear-gradient(top,  #a7cfdf 0%,#23538a 100%); /* Opera 11.10+ */
+      background: -ms-linear-gradient(top,  #a7cfdf 0%,#23538a 100%); /* IE10+ */
+      background: linear-gradient(to bottom,  #a7cfdf 0%,#23538a 100%); /* W3C */
+      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a7cfdf', endColorstr='#23538a',GradientType=0 ); /* IE6-9 */
+
+      display: inline-block;
+      text-align: center;
+      position: relative;
+      width: 260px;
+      height: 260px;
+    }
+
+    .layer {
+      position: absolute;
+      display: block;
+      padding: 4px;
+      top: 0px;
+      left: 0px;
+    }
+
+    .layer:nth-child(1) { left: 21px; top: 21px; }
+    .layer:nth-child(2) { left: 18px; top: 18px; }
+    .layer:nth-child(3) { left: 15px; top: 15px; }
+    .layer:nth-child(4) { left: 12px; top: 12px; }
+    .layer:nth-child(5) { left:  9px; top:  9px; }
+    .layer:nth-child(6) { left:  6px; top:  6px; }
+    .layer:nth-child(7) { left:  3px; top:  3px; }
+    .layer:nth-child(8) { left:  0px; top:  0px; }
+
+    .hidden { display: none; }
+    .faded  { opacity: 0.3; }
+
+    #palDisplay
+    {
+      background: #a7cfdf; /* Old browsers */
+      background: -moz-linear-gradient(top,  #a7cfdf 0%, #23538a 100%); /* FF3.6+ */
+      background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#a7cfdf), color-stop(100%,#23538a)); /* Chrome,Safari4+ */
+      background: -webkit-linear-gradient(top,  #a7cfdf 0%,#23538a 100%); /* Chrome10+,Safari5.1+ */
+      background: -o-linear-gradient(top,  #a7cfdf 0%,#23538a 100%); /* Opera 11.10+ */
+      background: -ms-linear-gradient(top,  #a7cfdf 0%,#23538a 100%); /* IE10+ */
+      background: linear-gradient(to bottom,  #a7cfdf 0%,#23538a 100%); /* W3C */
+      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a7cfdf', endColorstr='#23538a',GradientType=0 ); /* IE6-9 */
+
+      display: inline-block;
+      width: 340px;
+      text-align: center;
+    }
+
+    .block {
+      position: relative;
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin: 2px;
+      border: 1px solid #000;
+    }
+
+    .block > em {       
+      display: none;
+      position: absolute;
+      right: 22px;
+      bottom: 2px;
+      background: #CCC;
+      box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+      border: 1px solid black;
+      padding: 8px; 
+      max-width: 200px;
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    .block:hover > em { 
+      display: block;
+    }
+
+    .blkLink {
+      box-shadow: 1px 1px rgba(0,0,0,0.6);
+    }      
+
+    .blkSmooth {
+      border-radius: 5px;
+    }
+
+    .data {
+      white-space: pre-wrap; 
+      font-family: monospace; 
+    }
+
+    #blockRaw { 
+      background: #FCC; 
+      width: 240px; 
+      display:block;
+    }
+
+    #palRaw {
+      background: #CFC; 
+      width: 200px; 
+      display:block;
+    }
+
+    .artistID {
+      display: block;
+      font-variant: small-caps;
+      font-size: 150%;
+      background: #DDD;
+      padding: 2px 2px 2px 6px;
+    }
+
+    .blockID {
+      display: block;
+      font-variant: small-caps;
+      font-size: 120%;
+      text-align: right;
+      color: #EEE;
+      background: #111;
+      padding: 2px 6px 2px 2px;
+    }
+
+    .bitsPerBlock {
+      display: block;
+      padding: 4px;
+    }
+
+    .bitmapblk { 
+      position: relative;
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      border: 1px dashed #888;
+      margin: 0px;
+      width: 8px;
+      height: 8px;
+    }
+    
+    .bitmapblk.solidity  { background : #000; border: 1px solid #111; }
+    .bitmapblk.link   { background : #FFF; border: 1px solid #333; }
+    .bitmapblk.colour { background : #F00; border: 1px solid #311; }
+    .bitmapblk.alpha  { background : #0F0; border: 1px solid #131; }
+    .bitmapblk.shade  { background : #00F; border: 1px solid #113; }
+    .bitmapblk.smooth { background : #F0F; border: 1px solid #331; }
+
+    .bitmapblk:hover:after 
+    { 
+      position: absolute; 
+      bottom: 10px;
+      right: 10px; 
+      display: block; 
+      background: #FFF; 
+      content:"<unused>"; 
+      padding: 4px;
+      border: 1px solid rgba(0,0,0,0.5);
+      box-shadow: 3px 3px 3px rgba(0,0,0,0.3);
+    }
+    
+    .bitmapblk.solidity:hover:after  { content:"Solidity";}
+    .bitmapblk.link:hover:after   { content:"Link";}
+    .bitmapblk.colour:hover:after { content:"Colour";}
+    .bitmapblk.alpha:hover:after  { content:"Alpha";}
+    .bitmapblk.shade:hover:after  { content:"Shading";}
+    .bitmapblk.smooth:hover:after { content:"Smooth";}
+
+    .pal {
+      margin: 2px 0px 2px 0px;
+      padding: 0px;
+      border: 2px solid;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .pal h3 {
+      margin: 0px 0px 4px 0px;
+      padding: 4px;
+      border-bottom: dashed 1px rgba(0,0,0,0.5);
+    }
+
+    .pal h4 {
+      margin: 3px 0px 0px 0px;
+      padding: 2px;
+    }
+
+    .bitsUsed {
+      display: block;
+      text-align: right;
+    }
+
+    .blot {
+      display: inline-block;
+      min-width: 28px;
+      height: 28px;
+      margin: 4px;
+      border: 2px dotted rgba(255,255,255,0.5);
+      box-shadow: 3px 3px 3px rgba(0,0,0,0.4);
+      border-radius: 16px;
+      position: relative;
+      top: -2px;
+      left: -2px;
+      vertical-align: top;
+    }
+
+    .blot:hover, .blot.active {
+      border: 2px solid rgba(0,0,0,0.8);
+      box-shadow: 0px 0px 4px #000;
+      top: 0px;
+      left: 0px;
+    }
+
+    .blot.active { border-radius: 2px; }
+
+    .method {
+      display: block;
+      padding: 2px;
+      text-align: center;
+    }
+
+    #artistLinkID, #cubeLinkID {
+      width: 45%;
+    }
+
+  </style>
+  <script src="blockEditor.js" ></script>
+</head>
+  <body>
+    <span class="submitButton" onclick="doJSSubmit();">Submit to Server</span>
+
+    <div id="palDisplay"></div>
+    <div id="blockDisplay"></div>
+    <div style="display: inline-block;" >
+      <input type="range" min="0" max="7" id="layerSlider"
+          onchange="SelectLayer(this.value);" 
+          style="-webkit-appearance: slider-vertical; width: 50px; height: 200px;"/>
+    </div>
+
+    <div class="debug" style="display: inline-block;">
+      <span id="palRaw" class="data"></span>
+      <span id="blockRaw" class="data"></span>
+    </div>    
+
+    <script type="text/javascript">
+    UpdatePalDisplay();
+    UpdateCubeDisplay();
+    </script>
+
+  </body>
+</html>
