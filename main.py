@@ -300,11 +300,24 @@ class BlockEditHandler(webapp2.RequestHandler):
 		template = jinja_enviroment.get_template('newBlockVer.html')
 		self.response.out.write(template.render(template_values))
 
+	def processData(self, blockDataLength, palDataLength, linkDataLength, rawBody):
+		#
+		logging.info([int(blockDataLength), int(palDataLength), int(linkDataLength)])
+		logging.info(str(rawBody))
+		logging.info("BOOOM")
+
 	def post(self):
 		#self.response.headers['Content-Type'] = 'application/octet-stream'
 		#self.response.headers['Content-Encoding'] = 'arraybuffer'
 
 		self.response.headers['Content-Type'] = 'application/boobs; base64'
+
+		rawBytes = []
+		for line in self.request.body:
+			rawBytes.append(ord(str(line)))
+
+		self.processData(self.request.get('szBlock'), self.request.get('szPal'), self.request.get('szLink'), rawBytes)
+
 		
 		self.response.headers['szBlock']      = str(self.request.get('szBlock'))
 		self.response.headers['szPal']        = str(self.request.get('szPal'))

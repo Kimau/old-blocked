@@ -150,8 +150,8 @@ var currBlock =
   'palSmooth': {'bits': 0},
   
   'blkBits': [
-    {'solidity': 0,'link': 0,'colour': 3,'alpha': 0,'shade': 0,'smooth': 0}, 
-    {'solidity': 1,'link': [1, 2],'colour': 3}
+    {'solidity': 1,'link': 0,'colour': 3,'alpha': 0,'shade': 0,'smooth': 0}, 
+    {'solidity': 0,'link': [1, 2],'colour': 3}
   ]
 };
 
@@ -464,6 +464,44 @@ function BytesToPal(block, data)
   }
 }
 
+function BytesToBlkBit(block, data)
+{
+  var blkBit = {'solidity': (data & 1)};
+  
+  if (data & 2) 
+  {
+    blkBit.link = 1;
+  }
+  
+  var c = 2;
+  
+  if (block.palColour && block.palColour.bits) 
+  {
+    blkBit.colour = (data >> c) % Math.pow(2, block.palColour.bits);
+    c += block.palColour.bits;
+  }
+  
+  if (block.palAlpha && block.palAlpha.bits) 
+  {
+    blkBit.alpha = (data >> c) % Math.pow(2, block.palAlpha.bits);
+    c += block.palAlpha.bits;
+  }
+  
+  if (block.palShade && block.palShade.bits) 
+  {
+    blkBit.shade = (data >> c) % Math.pow(2, block.palShade.bits);
+    c += block.palShade.bits;
+  }
+  
+  if (block.palSmooth && block.palSmooth.bits) 
+  {
+    blkBit.smooth = (data >> c) % Math.pow(2, block.palSmooth.bits);
+    c += block.palSmooth.bits;
+  }
+
+  return blkBit;
+}
+
 function BytesToBlockBits(block, data) 
 {
   block.blkBits = [];
@@ -475,41 +513,7 @@ function BytesToBlockBits(block, data)
   // Copy Across Data
   for (var i = 0; i < data.length; i++) 
   {
-    var tmpBit = data[i];
-    var blkBit = {'solidity': (tmpBit & 1)};
-    
-    if (tmpBit & 2) 
-    {
-      blkBit.link = 1;
-    }
-    
-    var c = 2;
-    
-    if (block.palColour && block.palColour.bits) 
-    {
-      blkBit.colour = (tmpBit >> c) % Math.pow(2, block.palColour.bits);
-      c += block.palColour.bits;
-    }
-    
-    if (block.palAlpha && block.palAlpha.bits) 
-    {
-      blkBit.alpha = (tmpBit >> c) % Math.pow(2, block.palAlpha.bits);
-      c += block.palAlpha.bits;
-    }
-    
-    if (block.palShade && block.palShade.bits) 
-    {
-      blkBit.shade = (tmpBit >> c) % Math.pow(2, block.palShade.bits);
-      c += block.palShade.bits;
-    }
-    
-    if (block.palSmooth && block.palSmooth.bits) 
-    {
-      blkBit.smooth = (tmpBit >> c) % Math.pow(2, block.palSmooth.bits);
-      c += block.palSmooth.bits;
-    }
-    
-    block.blkBits = block.blkBits.concat(blkBit);
+    block.blkBits = block.blkBits.concat(BytesToBlkBit(block, data[i]));
   }
 }
 
@@ -607,10 +611,6 @@ function MakeBlockDomElem(blkBit,i)
   
   if (blkBit.solidity) 
   {
-    blk.style.setProperty('border', '1px dashed #000');
-  } 
-  else 
-  {
     var colour = [1, 1, 1, 1];
     
     if (blkBit.colour && currBlock.palColour && currBlock.palColour.bits) 
@@ -647,6 +647,10 @@ function MakeBlockDomElem(blkBit,i)
     
     blk.style.setProperty('background-color', toCssCol(colour));
   }
+  else 
+  {
+    blk.style.setProperty('border', '1px dashed #000');
+  } 
 
   // Link
   if (blkBit.link) 
@@ -687,8 +691,8 @@ function UpdatePalDisplay()
   s += '</span>';
 
   s += '<div class="pal"><h3>Solidity  [<span class="bitmapblk solidity" ></span>]</h3>';
-  s += '<span class="blot" onclick="' + "SelectBlot(this,'solidity',1);" + '" style="background-color: rgba(0,0,0,0);"></span>';
-  s += '<span class="blot" onclick="' + "SelectBlot(this,'solidity',0);" + '" style="background-color: rgba(255,255,255,1);"></span>';
+  s += '<span class="blot" onclick="' + "SelectBlot(this,'solidity',0);" + '" style="background-color: rgba(0,0,0,0);"></span>';
+  s += '<span class="blot" onclick="' + "SelectBlot(this,'solidity',1);" + '" style="background-color: rgba(255,255,255,1);"></span>';
   s += '</div>';
   
   if (currBlock.palColour) 
@@ -734,7 +738,7 @@ function UpdatePalDisplay()
     s += '<span class="method">' + shadingMethods[currBlock.palShade.method] + '</span>';
     for (i = 0; i < currBlock.palShade.scale.length; i++) 
     {
-      s += '<span class="blot" onclick="' + "SelectBlot(this,'colour'," + i + ');" style="background-color:' + rgba([currBlock.palShade.colour[0], currBlock.palShade.colour[1], currBlock.palShade.colour[2], currBlock.palShade.scale[i] / 100]) + ';"></span>';
+      s += '<span class="blot" onclick="' + "SelectBlot(this,'shade'," + i + ');" style="background-color:' + rgba([currBlock.palShade.colour[0], currBlock.palShade.colour[1], currBlock.palShade.colour[2], currBlock.palShade.scale[i] / 100]) + ';"></span>';
     }
 
     s += '</div>';
