@@ -397,13 +397,13 @@ function PalToBytes(block)
 
 function BytesToPal(block, data) 
 {
-  block.artistID = BitsToBig(data.subarray(0, 4), 255)[0];
-  block.blockID = BitsToBig(data.subarray(4, 4), 255)[0];
-  block.size = data[8];
+  block.artistID  = BitsToBig(data.subarray(0, 4), 255)[0];
+  block.blockID   = BitsToBig(data.subarray(4, 4), 255)[0];
+  block.size      = data[8];
   
   block.palColour = undefined;
-  block.palAlpha = undefined;
-  block.palShade = undefined;
+  block.palAlpha  = undefined;
+  block.palShade  = undefined;
   block.palSmooth = undefined;
   
   // Process Pallettes
@@ -545,12 +545,12 @@ function processMessage(e)
     console.log(rawResponse);
     
     var szBlock = Number(this.getResponseHeader('szBlock'));
-    var szPal = Number(this.getResponseHeader('szPal'));
-    var szLink = Number(this.getResponseHeader('szLink'));
+    var szPal   = Number(this.getResponseHeader('szPal'));
+    var szLink  = Number(this.getResponseHeader('szLink'));
     
-    var blockRecvData = new Uint8Array(rawResponse, 0, szBlock);
-    var palRecvData = new Uint8Array(rawResponse, szBlock, szPal);
-    var linkRecvData = new Uint8Array(rawResponse, szBlock + szPal, szLink);
+    var palRecvData   = new Uint8Array(rawResponse, 0,               szPal);
+    var blockRecvData = new Uint8Array(rawResponse, szPal,           szBlock);
+    var linkRecvData  = new Uint8Array(rawResponse, szBlock + szPal, szLink);
 
     // Display Data
     $('blockRaw').innerHTML = '';
@@ -850,17 +850,15 @@ function doJSSubmit()
   };
 
   // Setup Transfer Data
-  var bugger = new ArrayBuffer(blockSendData.byteLength + palSendData.byteLength + linkSendData.byteLength);
-  var cpyBData = new Uint8Array(bugger, 0, blockSendData.length);
-  var cpyPData = new Uint8Array(bugger, blockSendData.byteLength, palSendData.length);
-  var cpyLData = new Uint8Array(bugger, blockSendData.byteLength + palSendData.byteLength, linkSendData.length);
-  
-  cpyBData.set(blockSendData);
-  cpyPData.set(palSendData);
-  cpyLData.set(linkSendData);
-  
-  console.log(blockSendData.byteLength + palSendData.byteLength + linkSendData.byteLength);
-  console.log(blockSendData.length + palSendData.length + linkSendData.length);
+  var bugger = new Uint8Array(blockSendData.length + palSendData.length + linkSendData.length);
+  bugger.set(palSendData,   0);
+  bugger.set(blockSendData, palSendData.length);
+  bugger.set(linkSendData,  palSendData.length + blockSendData.length);
+
+  console.log(palSendData);
+  console.log(blockSendData);
+  console.log(linkSendData);
+  console.log(bugger);
 
   // Setup and Send
   var xhr = new XMLHttpRequest();

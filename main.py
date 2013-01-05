@@ -263,7 +263,148 @@ class MainHandler(webapp2.RequestHandler):
 				</form></div>
 				""");
 
+#================================================================================
+#
+#                Helper Functions
+#
+#================================================================================
+def BitsToBig(s, num):
+	tempBucket = 0
+	bigNums = []
+	i = 0
+	while(len(s)):
+		if s[i] >= num:
+			bigNums.append(tempBucket)
+			tempBucket = 0
+		else:
+			tempBucket = (tempBucket * num) + s[i]
+		++i
+
+	if tempBucket > 0:
+		bigNums.append(c)
+	elif bigNums.length == 0:
+		bigNums = [0]
+
+	return bigNums
+
+def MakBit(bigNumber, num, padSize):
+	if bigNumber:
+		return [0]
+
+	smallBits = []
+	while(bigNumber > 0):
+		r = bigNumber % num
+		smallBits.append(r)
+		bigNumber = int(bigNumber / num)
+
+	while len(smallBits) < padSize:
+		smallBits.append(0)
+
+	smallBits.reverse()
+	return smallBits
+
+def BigToBits(bigNums, num):
+	if len(bigNums) == 0:
+		return []
+	
+	smallBits = [MakeBit(bigNums[0], num, 0)]
+
+	i = 0
+	while i < len(bigNums):
+		smallBits.append(MakeBit(bigNums[0], num, 0))
+
+	return smallBits
+
+class BlockPal:
+	palColourID = [10:19]
+	palAlphaID  = [20:29]
+	palShadeID  = [30:39]
+	palSmoothID = [40:49]
+
+	def ConvertFromBytes(self, byteData):
+		#
+		self.artistID     = BitsToBig(byteData[0:4], 255)
+		self.blockID      = BitsToBig(byteData[4:8], 255)
+		self.bitsPerBlock = byteData[8]
+		
+		self.palColour    = None
+		self.palAlpha     = None
+		self.palShade     = None
+		self.palSmooth    = None
+
+		byteData = byteData[9:]
+		while(len(byteData)):
+			#
+			if   byteData[0] > palColourID[0] and byteData[0] < palColourID[1]:
+				#
+			elif byteData[0] > palAlphaID[0]  and byteData[0] < palAlphaID[1]:
+				#
+			elif byteData[0] > palShadeID[0]  and byteData[0] < palShadeID[1]:
+				#
+			elif byteData[0] > palSmoothID[0] and byteData[0] < palSmoothID[1]:
+				#
+			else:
+				# "Unknown Pal or Something gone wrong in processing"
+				raise new Exception("Unknown Pal or Something gone wrong in processing")
+			#
+		#
+
+	def ConvertToBytes(self, bytes):
+		#
+
+# Block Handler
 class BlockEditHandler(webapp2.RequestHandler):
+	def processData(self, blockDataLength, palDataLength, linkDataLength, rawBody):
+		# Check Lengths
+		if(palDataLength < 2) or (palDataLength > 490):
+			return [False, "Pallette Data Length Invalid"]
+		if(linkDataLength < 0):
+			return [False, "Link Data Length Invalid"] 
+		if(blockDataLength != 512):
+			return [False, "Block Data Length Invalid"]
+
+		# Process Block
+		palData = rawBody[0:palDataLength]
+		blockData = rawBody[palDataLength:(palDataLength+blockDataLength)]
+		linkData = rawBody[(palDataLength+blockDataLength):(palDataLength+blockDataLength+linkDataLength)]
+
+		newPal = BlockPal()
+		newPal.ConvertFromBytes(palData)
+
+		# a
+		BitsToBig(processedBlock["pal"][0:4], 255)
+
+		logging.info(str(rawBody) + '\n-------------------\n' + str([palData, blockData, linkData]) + '\n-------------------\n')
+
+	def post(self):
+		rawBytes = []
+		for line in self.request.body:
+			rawBytes.append(ord(str(line)))
+
+		try:
+			blockLen = int(self.request.get('szBlock'))
+		except ValueError:
+			blockLen = 0
+
+		try:
+			palLen = int(self.request.get('szPal'))
+		except ValueError:
+			palLen = 0
+
+		try:
+			linkLen = int(self.request.get('szLink'))
+		except ValueError:
+			linkLen = 0
+
+		self.processData(blockLen, palLen, linkLen, rawBytes)
+
+		# Send Response
+		self.response.headers['Content-Type'] = 'application/boobs; base64'
+		self.response.headers['szBlock']      = str(self.request.get('szBlock'))
+		self.response.headers['szPal']        = str(self.request.get('szPal'))
+		self.response.headers['szLink']       = str(self.request.get('szLink'))
+		self.response.body = self.request.body
+
 	def get(self):
 		# SETUP
 		artist = getArtistByID(None)
@@ -299,31 +440,6 @@ class BlockEditHandler(webapp2.RequestHandler):
 
 		template = jinja_enviroment.get_template('newBlockVer.html')
 		self.response.out.write(template.render(template_values))
-
-	def processData(self, blockDataLength, palDataLength, linkDataLength, rawBody):
-		#
-		logging.info([int(blockDataLength), int(palDataLength), int(linkDataLength)])
-		logging.info(str(rawBody))
-		logging.info("BOOOM")
-
-	def post(self):
-		#self.response.headers['Content-Type'] = 'application/octet-stream'
-		#self.response.headers['Content-Encoding'] = 'arraybuffer'
-
-		self.response.headers['Content-Type'] = 'application/boobs; base64'
-
-		rawBytes = []
-		for line in self.request.body:
-			rawBytes.append(ord(str(line)))
-
-		self.processData(self.request.get('szBlock'), self.request.get('szPal'), self.request.get('szLink'), rawBytes)
-
-		
-		self.response.headers['szBlock']      = str(self.request.get('szBlock'))
-		self.response.headers['szPal']        = str(self.request.get('szPal'))
-		self.response.headers['szLink']       = str(self.request.get('szLink'))
-
-		self.response.body = self.request.body
 
 app = webapp2.WSGIApplication([
 								('/', MainHandler), 
