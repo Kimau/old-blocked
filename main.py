@@ -100,8 +100,9 @@ def getArtistByID(artID):
 	return artist
 
 def getBlockByID(artID, blockID):
-	if blockID == None or len(blockID) < 1:
-		blockID = 0
+	if isinstance( blockID, int ) is False:
+		if blockID == None or len(blockID) < 1:
+			blockID = 0
 
 	block = Block.get(db.Key.from_path('BlockArtist', 'aid' + str(artID), 'Block', 'bid' + str(blockID)))
 	return block
@@ -200,14 +201,10 @@ class BlockHandler(webapp2.RequestHandler):
 			# You need to pass this data
 			self.error(400)
 
-		self.response.out.write(json.dumps({'blockData':bData, 'palData':pData, 'linkData':lData}));
-		return
-
 		# Check Block ID
 		artist = getArtistByID(None)
 		bid = self.request.get('blockID')
 		block = getBlockByID(artist.artistID, bid)
-
 
 		# Create New Block
 		if block == None:
@@ -281,14 +278,13 @@ class BlockEditHandler(webapp2.RequestHandler):
 		blockData = rawBody[palDataLength:(palDataLength+blockDataLength)]
 		linkData = rawBody[(palDataLength+blockDataLength):(palDataLength+blockDataLength+linkDataLength)]
 
-		newPal = blockPal.BlockPal()
-		if newPal.ConvertFromBytes(palData) == False:	
-			logging,info(newPal)	
-			logging.info("It Worked")
-		else:
-			logging.info("Shit Fucked Up")
+		newQ = blockPal.QubedBlock()
+		newQ.ConvertFromBytes(palData)
+		newQ.BytesToLinks(linkData)
+		newQ.blockData = blockData
 
-		logging.info(str(rawBody) + '\n-------------------\n' + str([palData, blockData, linkData]) + '\n-------------------\n')
+		# Save to Database
+		return newQ
 
 	def post(self):
 		rawBytes = []
@@ -310,14 +306,43 @@ class BlockEditHandler(webapp2.RequestHandler):
 		except ValueError:
 			linkLen = 0
 
-		self.processData(blockLen, palLen, linkLen, rawBytes)
+		newQ = self.processData(blockLen, palLen, linkLen, rawBytes)
+
+		# Check Block ID
+		artist = getArtistByID(None)
+		block = getBlockByID(artist.artistID, newQ.blockID)
+
+		# Create New Block
+		if block == None:
+			blockList = Block.gql('WHERE ancestor IS :a', a = artist)
+			bid = blockList.count()
+
+			if bid >= artist.blockMax:
+				self.error(500) # Exceeded Limit
+				return
+
+			block = Block(key_name='bid' + str(bid),parent=artist, blockID=bid)
+			block.put()
+			#
+
+		# Try Get Validate Links
+		lData = []
+		for l in newQ.links:
+			linkBlock = getBlockByID(l[0],l[1])
+			if linkBlock == None:
+				logging.info("That Block does not exsist: #%d #%d" % (l[0], l[1]))
+				self.error(500)
+				return "Link Valid to Validate"
+			lData.append(linkBlock)
+
+		# Make New Version
+		byteStringPal = json.dumps(newQ.ByteStr(), separators=(',',':'))
+		blockBlob = db.Blob(reduce(lambda a,b: a + chr(b), newQ.blockData, ""))
+		newBVersion = BlockVer(parent=block, blockData=blockBlob, palData=byteStringPal, linkData=lData)
+		newBVersion.put()
 
 		# Send Response
-		self.response.headers['Content-Type'] = 'application/boobs; base64'
-		self.response.headers['szBlock']      = str(self.request.get('szBlock'))
-		self.response.headers['szPal']        = str(self.request.get('szPal'))
-		self.response.headers['szLink']       = str(self.request.get('szLink'))
-		self.response.body = self.request.body
+		self.response.write(newBVersion.date)
 
 	def get(self):
 		# SETUP

@@ -540,9 +540,7 @@ function processMessage(e)
   {
     var i;
     lastResponse = this;
-    
     rawResponse = this.response;
-    console.log(rawResponse);
     
     var szBlock = Number(this.getResponseHeader('szBlock'));
     var szPal   = Number(this.getResponseHeader('szPal'));
@@ -839,8 +837,8 @@ function doJSSubmit()
       flatLinkList = flatLinkList.concat(currBlock.blkBits[i].link);
     }
   }
-  
-  flatLinkList = BigToBits(flatLinkList, 255);
+
+  var tempLinkBits = BigToBits(flatLinkList, 255);
   var linkSendData = new Uint8Array(flatLinkList.length);
   linkSendData.set(flatLinkList);
 
@@ -858,10 +856,17 @@ function doJSSubmit()
   bugger.set(blockSendData, palSendData.length);
   bugger.set(linkSendData,  palSendData.length + blockSendData.length);
 
-  console.log(palSendData);
-  console.log(blockSendData);
-  console.log(linkSendData);
-  console.log(bugger);
+  // Debug
+  var debugDump = {
+    'args'          : args,
+    'flatLinkList'  : flatLinkList,
+    'palSendData'   : palSendData,
+    'blockSendData' : blockSendData,
+    'linkSendData'  : linkSendData,
+    'bugger'        : bugger
+  }
+
+  console.log(debugDump);
 
   // Setup and Send
   var xhr = new XMLHttpRequest();

@@ -10,7 +10,7 @@ def BitsToBig(s, num):
 			tempBucket = (tempBucket * num) + s[i]
 
 	if tempBucket > 0:
-		bigNums.append(c)
+		bigNums.append(tempBucket)
 	elif len(bigNums) == 0:
 		bigNums = [0]
 
@@ -44,6 +44,10 @@ def BigToBits(bigNums, num):
 	smallBits = reduce(lambda x,y: x + [255] + y, smallBits)
 	return smallBits
 
+def BytesToLinkList(rawData):
+	blkLinks = []
+	return blkLinks
+
 class ColourPal:
 	minID = 10
 	maxID = 19
@@ -59,6 +63,11 @@ class ColourPal:
 		tempDict = { 'palType' : 'Colour', 'bits': self.bits, 'palID' : ColourPal.minID + self.bits }
 		tempDict['colours'] = self.colours
 		return tempDict
+
+	def ByteStr(self):
+		tempDict = { 'ID' : ColourPal.minID + self.bits }
+		tempDict['c'] = self.colours
+		return tempDict		
 
 	def ConvertFromBytes(self, byteData):
 		#
@@ -89,6 +98,11 @@ class AlphaPal:
 		tempDict = { 'palType' : 'Alpha', 'bits': self.bits, 'palID' : AlphaPal.minID + self.bits }
 		tempDict['scale'] = self.scale
 		return tempDict
+
+	def ByteStr(self):
+		tempDict = { 'ID' : AlphaPal.minID + self.bits }
+		tempDict['s'] = self.scale
+		return tempDict		
 
 	def ConvertFromBytes(self, byteData):
 		#
@@ -125,6 +139,13 @@ class ShadePal:
 		tempDict['scale'] = self.scale
 		return tempDict
 
+	def ByteStr(self):
+		tempDict = { 'ID' : ShadePal.minID + self.bits }
+		tempDict['m'] = self.method
+		tempDict['c'] = self.colour
+		tempDict['s'] = self.scale
+		return tempDict		
+
 	def ConvertFromBytes(self, byteData):
 		#
 		self.bits = byteData[0] % 10
@@ -157,18 +178,25 @@ class SmoothPal:
 		tempDict = { 'palType' : 'Smooth', 'bits': self.bits, 'palID' : SmoothPal.minID + self.bits }
 		return tempDict
 
+	def ByteStr(self):
+		tempDict = { 'ID' : SmoothPal.minID + self.bits }
+		return tempDict		
+
 	def ConvertFromBytes(self, byteData):
 		#
 		self.bits = byteData[0] % 10
 		byteData = byteData[1:]
 		return byteData
 
-class BlockPal:
+class QubedBlock:
 	def __init__(self):
 		self.artistID = 0
 		self.blockID = 0
 		self.bitsPerBlock = 8
 		self.pallettes = []
+		self.links = []
+		self.blockData = []
+		self.rawPal = []
 
 	def __repr__(self):
 		s = "Block %d:%d  %dbits" % (self.artistID, self.blockID, self.bitsPerBlock)
@@ -179,14 +207,58 @@ class BlockPal:
 		return s
 
 	def EncodeJSON(self):
-		tempDict = { 'artistID' : self.artistID, 'blockID' : self.blockID, 'bits' : self.bitsPerBlock, 'pals' : []}
+		tempDict = { 'artistID' : self.artistID, 'blockID' : self.blockID, 'bits' : self.bitsPerBlock, 'pals' : [], 'links' : self.links }
 		for p in self.pallettes:
 			tempDict['pals'].append(p.EncodeJSON())
 
 		return tempDict
 
+	def ByteStr(self):
+		tempDict = { 'b' : self.bitsPerBlock, 'p' : [] }
+		for p in self.pallettes:
+			tempDict['p'].append(p.ByteStr())
+
+		return tempDict
+
+	def BytesToLinks(self, byteData):
+		flatLink = BitsToBig(byteData, 255)
+		self.links = []
+		while(len(flatLink) >= 2):
+			self.links.append(flatLink[:2])
+			flatLink = flatLink[2:]
+
+	def ConvertFromByteString(self, aid, bid, byteStrObj):
+		self.rawPal       = None
+		self.artistID     = aid
+		self.blockID      = bid
+		self.bitsPerBlock = byteStrObj.b
+		self.pallettes    = []
+		for p in byteStrObj.p:
+			if p.ID >= ColourPal.minID  and p.ID <= ColourPal.maxID:
+				newPal         = ColourPal()
+				newPal.bits    = p.ID % 10
+				newPal.colours = p.c
+			elif p.ID >= AlphaPal.minID  and p.ID <= AlphaPal.maxID:
+				newPal       = AlphaPal()
+				newPal.bits  = p.ID % 10
+				newPal.scale = p.s
+			elif p.ID >= ShadePal.minID  and p.ID <= ShadePal.maxID:
+				newPal = ShadePal()
+				newPal.bits   = p.ID % 10
+				newPal.colour = p.c
+				newPal.method = p.m
+				newPal.scale  = p.s
+			elif p.ID >= SmoothPal.minID  and p.ID <= SmoothPal.maxID:
+				newPal       = AlphaPal()
+				newPal.bits  = p.ID % 10
+			else:
+				raise Exception("Unknown ID")
+			#
+		#
+
 	def ConvertFromBytes(self, byteData):
 		#
+		self.rawPal       = byteData
 		self.artistID     = BitsToBig(byteData[0:4], 255)[0]
 		self.blockID      = BitsToBig(byteData[4:8], 255)[0]
 		self.bitsPerBlock = byteData[8]
@@ -219,12 +291,22 @@ class BlockPal:
 
 
 if __name__=="__main__":
-	x = BlockPal()
+	sampleLinks = [4444, 1235, 4444, 1235, 4444, 1235, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 4444, 1235, 8, 45, 8, 45, 8, 45, 4444, 1235, 8, 45, 8, 45]
+	sampleLinkBits = [17, 109, 255, 4, 215, 255, 17, 109, 255, 4, 215, 255, 17, 109, 255, 4, 215, 255, 1, 255, 3, 255, 1, 255, 3, 255, 1, 255, 3, 255, 1, 255, 3, 255, 1, 255, 3, 255, 1, 255, 3, 255, 1, 255, 3, 255, 1, 255, 3, 255, 17, 109, 255, 4, 215, 255, 8, 255, 45, 255, 8, 255, 45, 255, 8, 255, 45, 255, 17, 109, 255, 4, 215, 255, 8, 255, 45, 255, 8, 255, 45]
+
+	x = QubedBlock()
 	y = [0, 0, 0, 0, 0, 0, 0, 0, 8, 13, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 0, 255, 0, 255, 0, 255, 255, 21, 100, 50, 32, 0, 0, 0, 0, 0, 33, 66, 100, 40]
 	x.ConvertFromBytes(y)
+	x.BytesToLinks(sampleLinkBits)
 	print(x)
 	import json
 	# Compact JSON
 	print( json.dumps(x.EncodeJSON(), separators=(',',':')) )
+	print( json.dumps(x.ByteStr(), separators=(',',':')) )
 	# Preety Print
 	# print( json.dumps(x.EncodeJSON(), sort_keys=True, indent=4, separators=(',', ': ')) )
+
+	testData = BigToBits(sampleLinks,255);
+	print(sampleLinkBits == sampleLinks)
+	#
+#
