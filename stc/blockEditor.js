@@ -735,7 +735,10 @@ function UpdatePalDisplay()
       s += '<span class="bitmapblk shade" ></span>';
     s += ']</h3>';
 
-    s += '<span class="method">' + shadingMethods[currBlock.palShade.method] + '</span>';
+    s += '<span class="method">' + shadingMethods[currBlock.palShade.method]
+    s += '<span class="shadeColour" style="background-color:' + rgba([currBlock.palShade.colour[0], currBlock.palShade.colour[1], currBlock.palShade.colour[2], 1]) + ';"></span>';
+    s += '</span>';
+
     for (i = 0; i < currBlock.palShade.scale.length; i++) 
     {
       s += '<span class="blot" onclick="' + "SelectBlot(this,'shade'," + i + ');" style="background-color:' + rgba([currBlock.palShade.colour[0], currBlock.palShade.colour[1], currBlock.palShade.colour[2], currBlock.palShade.scale[i] / 100]) + ';"></span>';

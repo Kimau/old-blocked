@@ -28,6 +28,8 @@ from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 from google.appengine.api import users
 
+import blockPal
+
 jinja_enviroment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
 #---------------------------------------------------------------------
@@ -263,95 +265,6 @@ class MainHandler(webapp2.RequestHandler):
 				</form></div>
 				""");
 
-#================================================================================
-#
-#                Helper Functions
-#
-#================================================================================
-def BitsToBig(s, num):
-	tempBucket = 0
-	bigNums = []
-	i = 0
-	while(len(s)):
-		if s[i] >= num:
-			bigNums.append(tempBucket)
-			tempBucket = 0
-		else:
-			tempBucket = (tempBucket * num) + s[i]
-		++i
-
-	if tempBucket > 0:
-		bigNums.append(c)
-	elif bigNums.length == 0:
-		bigNums = [0]
-
-	return bigNums
-
-def MakBit(bigNumber, num, padSize):
-	if bigNumber:
-		return [0]
-
-	smallBits = []
-	while(bigNumber > 0):
-		r = bigNumber % num
-		smallBits.append(r)
-		bigNumber = int(bigNumber / num)
-
-	while len(smallBits) < padSize:
-		smallBits.append(0)
-
-	smallBits.reverse()
-	return smallBits
-
-def BigToBits(bigNums, num):
-	if len(bigNums) == 0:
-		return []
-	
-	smallBits = [MakeBit(bigNums[0], num, 0)]
-
-	i = 0
-	while i < len(bigNums):
-		smallBits.append(MakeBit(bigNums[0], num, 0))
-
-	return smallBits
-
-class BlockPal:
-	palColourID = [10:19]
-	palAlphaID  = [20:29]
-	palShadeID  = [30:39]
-	palSmoothID = [40:49]
-
-	def ConvertFromBytes(self, byteData):
-		#
-		self.artistID     = BitsToBig(byteData[0:4], 255)
-		self.blockID      = BitsToBig(byteData[4:8], 255)
-		self.bitsPerBlock = byteData[8]
-		
-		self.palColour    = None
-		self.palAlpha     = None
-		self.palShade     = None
-		self.palSmooth    = None
-
-		byteData = byteData[9:]
-		while(len(byteData)):
-			#
-			if   byteData[0] > palColourID[0] and byteData[0] < palColourID[1]:
-				#
-			elif byteData[0] > palAlphaID[0]  and byteData[0] < palAlphaID[1]:
-				#
-			elif byteData[0] > palShadeID[0]  and byteData[0] < palShadeID[1]:
-				#
-			elif byteData[0] > palSmoothID[0] and byteData[0] < palSmoothID[1]:
-				#
-			else:
-				# "Unknown Pal or Something gone wrong in processing"
-				raise new Exception("Unknown Pal or Something gone wrong in processing")
-			#
-		#
-
-	def ConvertToBytes(self, bytes):
-		#
-
 # Block Handler
 class BlockEditHandler(webapp2.RequestHandler):
 	def processData(self, blockDataLength, palDataLength, linkDataLength, rawBody):
@@ -368,11 +281,12 @@ class BlockEditHandler(webapp2.RequestHandler):
 		blockData = rawBody[palDataLength:(palDataLength+blockDataLength)]
 		linkData = rawBody[(palDataLength+blockDataLength):(palDataLength+blockDataLength+linkDataLength)]
 
-		newPal = BlockPal()
-		newPal.ConvertFromBytes(palData)
-
-		# a
-		BitsToBig(processedBlock["pal"][0:4], 255)
+		newPal = blockPal.BlockPal()
+		if newPal.ConvertFromBytes(palData) == False:	
+			logging,info(newPal)	
+			logging.info("It Worked")
+		else:
+			logging.info("Shit Fucked Up")
 
 		logging.info(str(rawBody) + '\n-------------------\n' + str([palData, blockData, linkData]) + '\n-------------------\n')
 
@@ -440,6 +354,8 @@ class BlockEditHandler(webapp2.RequestHandler):
 
 		template = jinja_enviroment.get_template('newBlockVer.html')
 		self.response.out.write(template.render(template_values))
+		#
+#--------------------------------#
 
 app = webapp2.WSGIApplication([
 								('/', MainHandler), 
