@@ -21,13 +21,14 @@ import random
 import json
 import os
 import jinja2
-import logging
 
 from google.appengine.ext import db
 from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 from google.appengine.api import users
+from google.appengine.ext import blobstore
 
+import logging
 import blockPal
 
 jinja_enviroment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
@@ -91,10 +92,11 @@ class BlockVer(db.Model):
 #	Helpers
 #---------------------------------------------------------------------
 def getArtistByID(artID):
-	if artID == None or len(artID) < 1:
-		usr = users.get_current_user()
-		artist = BlockArtist.gql('WHERE user = :u', u = usr).get()
-		return artist
+	if isinstance( artID, int ) is False:
+		if artID == None or len(artID) < 1:
+			usr = users.get_current_user()
+			artist = BlockArtist.gql('WHERE user = :u', u = usr).get()
+			return artist
 
 	artist = BlockArtist.get_by_key_name('aid' + artID)
 	return artist
@@ -168,63 +170,6 @@ class ArtistHandler(webapp2.RequestHandler):
 			x += 1
 
 		return -1
-
-class BlockHandler(webapp2.RequestHandler):
-	def get(self):
-		self.response.headers['content-type'] = 'application/json; charset=utf-8'
-
-		# Check if Art ID
-		artist = getArtistByID(self.request.get('aid'))
-
-		if artist == None:
-			self.response.out.write(json.dumps({ "aid": -1 }));
-			return
-
-		# Check Block ID
-		block = getBlockByID(artist.artistID, self.request.get('blockID'))
-
-		if block == None:
-			self.response.out.write(json.dumps({"aid": artist.artistID, "bid" : -1 }));
-			return
-
-		# Else Get Home Block
-		self.response.out.write(json.dumps({"aid": artist.artistID, "bid" : block.blockID }));
-
-	def post(self):
-		# Block Data
-		bData = self.request.get('blockData')
-		pData = self.request.get('palData')
-		lData = self.request.get('linkData')
-
-		# Validate Data
-		if bData == None or pData == None or lData == None or len(bData) < 1 or len(pData) < 1 == None or len(lData) < 1 == None:
-			# You need to pass this data
-			self.error(400)
-
-		# Check Block ID
-		artist = getArtistByID(None)
-		bid = self.request.get('blockID')
-		block = getBlockByID(artist.artistID, bid)
-
-		# Create New Block
-		if block == None:
-			blockList = Block.gql('WHERE ancestor IS :a', a = artist)
-			bid = blockList.count()
-
-			if bid >= artist.blockMax:
-				self.error(500) # Exceeded Limit
-				return
-
-			block = Block(key_name='bid' + str(bid),parent=artist, blockID=bid)
-			block.put()
-			#
-
-		# Make New Version
-		newBVersion = BlockVer(parent=block, blockData=bData, palData=pData, linkData=lData)
-		newBVersion.put()
-
-		self.response.out.write(json.dumps({"aid": artist.artistID, "bid" : block.blockID }));
-		pass
 
 class MainHandler(webapp2.RequestHandler):
 	def get(self):
@@ -342,49 +287,62 @@ class BlockEditHandler(webapp2.RequestHandler):
 		newBVersion.put()
 
 		# Send Response
-		self.response.write(newBVersion.date)
+		self.response.headers['content-type'] = 'application/json; charset=utf-8'
+		self.response.out.write(json.dumps({"aid": newQ.artistID, "bid" : newQ.blockID, "verDate" : newBVersion.date }));
 
 	def get(self):
-		# SETUP
-		artist = getArtistByID(None)
+		# Get Request Data
+		bid = self.request.get('bid')
+		aid = self.request.get('aid')
 
-		if artist == None:
-			self.error(500)
+		# SETUP
+		if aid:
+			artist = getArtistByID(aid)
+			if artist == None:
+				self.error(400)
+				self.response.out.write('Artist does not exsist')
+				return
+		else:
+			artist = getArtistByID(None)
+
+		if bid:
+			block = getBlockByID(aid, bid)
+			if block == None:
+				self.error(400)
+				self.response.out.write('Block does not exsist')
+				return
+
+			revList = BlockVer.gql('WHERE ancestor IS :b ORDER BY date DESC LIMIT 1', b = block)
+			lastBlockVer = revList.get()
+
+			if lastBlockVer == None:
+				self.error(500)
+				self.response.out.write('Failed to get latest revision')
+				return
+
+			palBucket = blockPal.QubedBlock()
+			palBucket.ConvertFromByteString(aid,bid, json.loads(lastBlockVer.palData))
+			palBucket.ConvertToBytes()
+			
+			logging.info("\n------------------------\n" + str(map(lambda x: ord(x), lastBlockVer.blockData)) + "\n------------------------\n")
+			logging.info("\n------------------------\n" + str(palBucket.rawPal) + "\n------------------------\n")
+
+			self.response.headers['Content-Type'] = 'application/qubed; base64'
+			self.response.headers['szBlock'] = str(len(lastBlockVer.blockData))
+			self.response.headers['szPal']   = str(len(palBucket.rawPal))
+			self.response.headers['szLink']  = '0' # Need to Support this
+
+			self.response.body = reduce(lambda a,b: a + chr(b), palBucket.rawPal, "") + lastBlockVer.blockData
 			return
 
-		aid = artist.artistID
-		block = getBlockByID(aid, None)
-
-		if block == None:
-			bid = 0
-		else:
-			bid = block.blockID
-
-		# Get Others
+		#
 		blockList = Block.gql('WHERE ancestor IS :a', a = artist)
-
-		# Get Request Data
-		bData = self.request.get('blockData')
-		pData = self.request.get('palData')
-		lData = self.request.get('linkData')
-
-		template_values = {
-			'artistID' : aid,
-			'blockID'  : bid,
-			'blockList': blockList,
-			'blockData': bData, 
-			'palData'  : pData, 
-			'linkData' : lData
-		}
-
-		template = jinja_enviroment.get_template('newBlockVer.html')
-		self.response.out.write(template.render(template_values))
 		#
 #--------------------------------#
 
 app = webapp2.WSGIApplication([
 								('/', MainHandler), 
 								('/artist', ArtistHandler), 
-								('/block', BlockHandler),
+								('/block', BlockEditHandler),
 								('/blockEditor', BlockEditHandler)],
 								debug=True)

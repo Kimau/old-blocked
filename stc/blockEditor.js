@@ -898,6 +898,23 @@ function SelectLayer(x)
   }
 }
 
+function doJSLoad()
+{
+  // Arguments
+  var args = 
+  {
+    'aid' : $("aidRequest").value,
+    'bid' : $("bidRequest").value
+  };
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/blockEditor' + argToParams(args), true);
+  xhr.responseType = 'arraybuffer';
+  xhr.setRequestHeader('Content-Type', 'application/octlet;base64');
+  xhr.onload = processMessage;
+  xhr.send(null);
+}
+
 function SelectBlot(caller, pal,val)
 {
   selectedBlot = [pal, val];

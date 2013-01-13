@@ -32,14 +32,14 @@ def MakeBit(bigNumber, num, padSize):
 	smallBits.reverse()
 	return smallBits
 
-def BigToBits(bigNums, num):
+def BigToBits(bigNums, num, padSize=0):
 	if len(bigNums) == 0:
 		return []
 	
 	smallBits = []
 
 	for i in range(len(bigNums)):
-		smallBits.append(MakeBit(bigNums[i], num, 0))
+		smallBits.append(MakeBit(bigNums[i], num, padSize))
 
 	smallBits = reduce(lambda x,y: x + [255] + y, smallBits)
 	return smallBits
@@ -83,6 +83,11 @@ class ColourPal:
 
 		return byteData
 
+	def ConvertToBytes(self):
+		byteData = [self.bits + ColourPal.minID]
+		byteData += reduce(lambda a,b: a + b, self.colours, [])
+		return byteData
+
 class AlphaPal:
 	minID = 20
 	maxID = 29
@@ -116,6 +121,11 @@ class AlphaPal:
 			byteData = byteData[1:]
 			reqLen -= 1
 
+		return byteData
+
+	def ConvertToBytes(self):
+		byteData = [self.bits + AlphaPal.minID]
+		byteData += self.scale
 		return byteData
 
 class ShadePal:
@@ -164,6 +174,12 @@ class ShadePal:
 
 		return byteData
 
+	def ConvertToBytes(self):
+		byteData = [self.bits + ShadePal.minID, self.method]
+		byteData += self.colour
+		byteData += self.scale
+		return byteData
+
 class SmoothPal:
 	minID = 40
 	maxID = 49
@@ -187,6 +203,9 @@ class SmoothPal:
 		self.bits = byteData[0] % 10
 		byteData = byteData[1:]
 		return byteData
+
+	def ConvertToBytes(self):
+		return [self.bits + SmoothPal.minID]
 
 class QubedBlock:
 	def __init__(self):
@@ -227,34 +246,47 @@ class QubedBlock:
 			self.links.append(flatLink[:2])
 			flatLink = flatLink[2:]
 
+
 	def ConvertFromByteString(self, aid, bid, byteStrObj):
 		self.rawPal       = None
-		self.artistID     = aid
-		self.blockID      = bid
-		self.bitsPerBlock = byteStrObj.b
+		self.artistID     = int(aid)
+		self.blockID      = int(bid)
+		self.bitsPerBlock = int(byteStrObj["b"])
 		self.pallettes    = []
-		for p in byteStrObj.p:
-			if p.ID >= ColourPal.minID  and p.ID <= ColourPal.maxID:
+		for p in byteStrObj["p"]:
+			if p["ID"] >= ColourPal.minID  and p["ID"] <= ColourPal.maxID:
 				newPal         = ColourPal()
-				newPal.bits    = p.ID % 10
-				newPal.colours = p.c
-			elif p.ID >= AlphaPal.minID  and p.ID <= AlphaPal.maxID:
+				newPal.bits    = p["ID"] % 10
+				newPal.colours = p["c"] 
+			elif p["ID"] >= AlphaPal.minID  and p["ID"] <= AlphaPal.maxID:
 				newPal       = AlphaPal()
-				newPal.bits  = p.ID % 10
-				newPal.scale = p.s
-			elif p.ID >= ShadePal.minID  and p.ID <= ShadePal.maxID:
+				newPal.bits  = p["ID"] % 10
+				newPal.scale = p["s"] 
+			elif p["ID"] >= ShadePal.minID  and p["ID"] <= ShadePal.maxID:
 				newPal = ShadePal()
-				newPal.bits   = p.ID % 10
-				newPal.colour = p.c
-				newPal.method = p.m
-				newPal.scale  = p.s
-			elif p.ID >= SmoothPal.minID  and p.ID <= SmoothPal.maxID:
-				newPal       = AlphaPal()
-				newPal.bits  = p.ID % 10
+				newPal.bits   = p["ID"] % 10
+				newPal.colour = p["c"] 
+				newPal.method = p["m"] 
+				newPal.scale  = p["s"] 
+			elif p["ID"] >= SmoothPal.minID  and p["ID"] <= SmoothPal.maxID:
+				newPal       = SmoothPal()
+				newPal.bits  = p["ID"] % 10
 			else:
 				raise Exception("Unknown ID")
+
+			self.pallettes.append(newPal)
 			#
 		#
+	def ConvertToBytes(self):
+		byteData = []
+		byteData += MakeBit(self.artistID, 255, 4)
+		byteData += MakeBit(self.blockID, 255, 4)
+		byteData += [self.bitsPerBlock]
+		for p in self.pallettes:
+			byteData += p.ConvertToBytes()
+
+		self.rawPal = byteData
+		return byteData
 
 	def ConvertFromBytes(self, byteData):
 		#
@@ -268,13 +300,13 @@ class QubedBlock:
 		byteData = byteData[9:]
 		i = len(byteData)
 		while len(byteData) > 0 and i > 0:
-			if byteData[0] > ColourPal.minID and byteData[0] < ColourPal.maxID:
+			if byteData[0] >= ColourPal.minID and byteData[0] < ColourPal.maxID:
 				pal = ColourPal()	# Colour
-			elif byteData[0] > AlphaPal.minID and byteData[0] < AlphaPal.maxID:
+			elif byteData[0] >= AlphaPal.minID and byteData[0] < AlphaPal.maxID:
 				pal = AlphaPal()	# Alpha
-			elif byteData[0] > ShadePal.minID and byteData[0] < ShadePal.maxID:
+			elif byteData[0] >= ShadePal.minID and byteData[0] < ShadePal.maxID:
 				pal = ShadePal()	# Shade
-			elif byteData[0] > SmoothPal.minID and byteData[0] < SmoothPal.maxID:
+			elif byteData[0] >= SmoothPal.minID and byteData[0] < SmoothPal.maxID:
 				pal = SmoothPal()	# Smoothing
 			else:
 				return False #raise new Exception("Unknown Pal or Something gone wrong in processing")
@@ -284,10 +316,6 @@ class QubedBlock:
 			i -= 1
 			#
 		#
-
-	def ConvertToBytes(self, bytes):
-		#
-		pass
 
 
 if __name__=="__main__":
@@ -299,10 +327,22 @@ if __name__=="__main__":
 	x.ConvertFromBytes(y)
 	x.BytesToLinks(sampleLinkBits)
 	print(x)
+
+	z = x.ConvertToBytes()
+	# print(y)
+	# print(z)
+	print("Byte encoding input/output match: " + str(all(map(lambda a,b: a == b, y,z))))
+
 	import json
 	# Compact JSON
-	print( json.dumps(x.EncodeJSON(), separators=(',',':')) )
-	print( json.dumps(x.ByteStr(), separators=(',',':')) )
+	jsonPretty = json.dumps(x.EncodeJSON(), sort_keys=True, indent=4, separators=(',', ': '))
+	jsonLong   = json.dumps(x.EncodeJSON(), separators=(',',':')) 
+	jsonPacked = json.dumps(x.ByteStr(), separators=(',',':')) 
+
+	print( jsonLong )
+	print( jsonPacked )
+
+	x.ConvertFromByteString(x.artistID, x.blockID, json.loads(jsonPacked))
 	# Preety Print
 	# print( json.dumps(x.EncodeJSON(), sort_keys=True, indent=4, separators=(',', ': ')) )
 
