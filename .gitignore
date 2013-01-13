@@ -1,1 +1,5 @@
 *.pyc
+unityClient/*.userprefs
+unityClient/*.pidb
+unityClient/Temp
+unityClient/Library

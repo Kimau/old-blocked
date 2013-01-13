@@ -292,8 +292,10 @@ class BlockEditHandler(webapp2.RequestHandler):
 
 	def get(self):
 		# Get Request Data
-		bid = self.request.get('bid')
-		aid = self.request.get('aid')
+		aid = self.request.get('aid') or self.request.headers['aid']
+		bid = self.request.get('bid') or self.request.headers['bid']
+
+		logging.info('Request Block a[' + aid + '] b[' + bid + ']');
 
 		# SETUP
 		if aid:
