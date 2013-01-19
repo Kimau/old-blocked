@@ -57,6 +57,14 @@ public class QubedServerInterface : MonoBehaviour
 		HttpWebResponse webRep = (HttpWebResponse)webReq.GetResponse();
 		if(webRep.StatusCode != HttpStatusCode.OK)
 			Debug.LogError(webRep.StatusCode + "\n" + webRep.StatusDescription);
+		
+		// Validate it's what we expect
+		if(webRep.ContentType.Contains("application/qubed;") == false)
+			Debug.LogError("Content Type does not match: " + webRep.ContentType.ToString());
+		
+		// webRep.Headers["szBlock"];
+		// webRep.Headers["szPal"];
+		// webRep.Headers["szLink"];
 	
 		// All Good
 		Stream stream = webRep.GetResponseStream();
@@ -64,6 +72,13 @@ public class QubedServerInterface : MonoBehaviour
 		byte[] byteStr = binReader.ReadBytes((int)webRep.ContentLength);
 		Debug.Log(byteStr);
 		stream.Close();
+		
+		
+		
+		System.Buffer.BlockCopy(byteStr, 0, blockData, 0, 512);
+		System.Buffer.BlockCopy(byteStr, 0, blockData, 0, 512);
+		System.Buffer.BlockCopy(byteStr, 0, blockData, 0, 512);
+
 	}
 	/*
 	void PostToGAE()

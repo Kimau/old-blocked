@@ -1,0 +1,548 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"debug",
+				"debugStr"
+			],
+			[
+				"Con",
+				"ConvertFromBytes"
+			],
+			[
+				"inl",
+				"inline-block"
+			],
+			[
+				"byte",
+				"byteData"
+			],
+			[
+				"Convert",
+				"ConvertToBytes"
+			],
+			[
+				"sz",
+				"szLink"
+			],
+			[
+				"block",
+				"block"
+			],
+			[
+				"Block",
+				"BlockVer"
+			],
+			[
+				"Smoo",
+				"SmoothPal"
+			],
+			[
+				"Sh",
+				"ShadePal"
+			],
+			[
+				"Alp",
+				"AlphaPal"
+			],
+			[
+				"bit",
+				"bits"
+			],
+			[
+				"new",
+				"newPal"
+			],
+			[
+				"Col",
+				"ColourPal"
+			],
+			[
+				"blo",
+				"blockID"
+			],
+			[
+				"link",
+				"linkBlock"
+			],
+			[
+				"sa",
+				"sampleLinkBits"
+			],
+			[
+				"fla",
+				"flatLinkList"
+			],
+			[
+				"co",
+				"colour"
+			],
+			[
+				"pal",
+				"pallettes"
+			],
+			[
+				"bits",
+				"bitsPerBlock"
+			],
+			[
+				"colour",
+				"colours"
+			],
+			[
+				"gam",
+				"gameChains"
+			],
+			[
+				"Sub",
+				"SubVariant"
+			],
+			[
+				"len",
+				"length"
+			],
+			[
+				"pop",
+				"PopCut"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "app.yaml",
+			"settings":
+			{
+				"buffer_size": 383,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "stc/blockEditor.js",
+			"settings":
+			{
+				"buffer_size": 26284,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "stc/newBlockVer.html",
+			"settings":
+			{
+				"buffer_size": 7893,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "main.py",
+			"settings":
+			{
+				"buffer_size": 10703,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": ".gitignore",
+			"settings":
+			{
+				"buffer_size": 85,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "blockPal.py",
+			"settings":
+			{
+				"buffer_size": 9148,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "{\"p\":[{\"c\":[],\"ID\":13},{\"s\":[100,50],\"ID\":21},{\"s\":[0,33,66,100],\"c\":[0,0,0],\"m\":0,\"ID\":32}],\"b\":8,\"l\":[[4444,1235],[4444,1235],[4444,1235],[1,3],[1,3],[1,3],[1,3],[1,3],[1,3],[1,3],[1,3],[4444,1235],[8,45],[8,45],[8,45],[4444,1235],[8,45],[8,45]]}\n\n\n15\n[100,100,100],\n\n210",
+			"settings":
+			{
+				"buffer_size": 273,
+				"line_ending": "Windows",
+				"name": "{\"p\":[{\"c\":[],\"ID\":13},{\"s\":[100,50],\"ID\":21},{\"s\""
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 150.0,
+		"selected_items":
+		[
+			[
+				"align",
+				"Preferences: Alignment File Settings – Syntax Specific – User"
+			],
+			[
+				"alignment",
+				"Preferences: Alignment File Settings – User"
+			],
+			[
+				"user",
+				"Preferences: Alignment File Settings – User"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 528.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/C/Users/Kimau/AppData/Roaming/Sublime Text 2/Packages/User/Base File.sublime-settings",
+		"/C/Users/Kimau/AppData/Roaming/Sublime Text 2/Packages/User/JavaScript.sublime-settings",
+		"/C/Users/Kimau/AppData/Roaming/Sublime Text 2/Packages/User/JSON.sublime-settings",
+		"/E/Dropbox/Dropbox/Public/server.py",
+		"/E/Dev/blockedblocks/test.py",
+		"/E/GDisk/Google Drive/Work/Climax/Blitz/grid.js",
+		"/E/GDisk/Google Drive/Work/Climax/Blitz/blank.html",
+		"/C/Users/Kimau/AppData/Roaming/Sublime Text 2/Packages/Terminal/Base File.sublime-settings",
+		"/C/Users/Kimau/AppData/Roaming/Sublime Text 2/Packages/User/Default (Windows).sublime-keymap",
+		"/C/Users/Kimau/AppData/Roaming/Sublime Text 2/Packages/Alignment/Default (Windows).sublime-keymap"
+	],
+	"find":
+	{
+		"height": 34.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"rawpal =",
+			"submitJS",
+			"logging",
+			"p\\.([^ \\n\\t]*)",
+			"p\\.([^ \\n\\t]*) ",
+			"application/json",
+			"json",
+			"BlockVer",
+			"BytesToLinks",
+			"byteData",
+			"MainHandler",
+			"getBlockByID",
+			"get",
+			"linksto",
+			"link",
+			"lastResponse",
+			"Shading ",
+			";",
+			"Rebuild",
+			"done",
+			"deltaT",
+			"GameTick",
+			"CompleteChain",
+			"\\n",
+			"playBoard",
+			"function.*add",
+			"add",
+			"BatchPinCollision",
+			"BatchInter",
+			"    \\[\\n\"",
+			"[ ]*(\"[0-9]*\"[\\,]*)\\n"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+			"p[\"\\1\"] ",
+			";\\n",
+			" , ",
+			" [\"",
+			"\\1 "
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "app.yaml",
+					"settings":
+					{
+						"buffer_size": 383,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								110,
+								110
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/YAML/YAML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "stc/blockEditor.js",
+					"settings":
+					{
+						"buffer_size": 26284,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								23117,
+								23130
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 12149.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "stc/newBlockVer.html",
+					"settings":
+					{
+						"buffer_size": 7893,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1928,
+								1928
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 14.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "main.py",
+					"settings":
+					{
+						"buffer_size": 10703,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9226,
+								9226
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 3861.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": ".gitignore",
+					"settings":
+					{
+						"buffer_size": 85,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								18,
+								18
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "blockPal.py",
+					"settings":
+					{
+						"buffer_size": 9148,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6695,
+								6695
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 4439.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"settings":
+					{
+						"buffer_size": 273,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								273,
+								273
+							]
+						],
+						"settings":
+						{
+							"auto_name": "{\"p\":[{\"c\":[],\"ID\":13},{\"s\":[100,50],\"ID\":21},{\"s\"",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 200.0
+	},
+	"replace":
+	{
+		"height": 62.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true
+}

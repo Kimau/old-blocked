@@ -288,7 +288,7 @@ class BlockEditHandler(webapp2.RequestHandler):
 
 		# Send Response
 		self.response.headers['content-type'] = 'application/json; charset=utf-8'
-		self.response.out.write(json.dumps({"aid": newQ.artistID, "bid" : newQ.blockID, "verDate" : newBVersion.date }));
+		self.response.out.write(json.dumps({"aid": newQ.artistID, "bid" : newQ.blockID, "verDate" : str(newBVersion.date) }));
 
 	def get(self):
 		# Get Request Data
@@ -326,8 +326,8 @@ class BlockEditHandler(webapp2.RequestHandler):
 			palBucket.ConvertFromByteString(aid,bid, json.loads(lastBlockVer.palData))
 			palBucket.ConvertToBytes()
 			
-			logging.info("\n------------------------\n" + str(map(lambda x: ord(x), lastBlockVer.blockData)) + "\n------------------------\n")
-			logging.info("\n------------------------\n" + str(palBucket.rawPal) + "\n------------------------\n")
+			# logging.info("\n------------------------\n" + str(map(lambda x: ord(x), lastBlockVer.blockData)) + "\n------------------------\n")
+			# logging.info("\n------------------------\n" + str(palBucket.rawPal) + "\n------------------------\n")
 
 			self.response.headers['Content-Type'] = 'application/qubed; base64'
 			self.response.headers['szBlock'] = str(len(lastBlockVer.blockData))
