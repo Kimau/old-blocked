@@ -5,7 +5,9 @@ using System.IO;
 
 public class QubedServerInterface : MonoBehaviour
 {
-	CookieContainer myCookies;
+	public QubeToMesh myBlock;	
+	
+	CookieContainer myCookies;	
 
 	// Use this for initialization
 	void Start()
@@ -16,7 +18,7 @@ public class QubedServerInterface : MonoBehaviour
 			GetAuthorityCookiesNOW();
 		
 		if(myCookies.Count > 0)
-			Poke();
+			myBlock.setQube(GetQube(1,0));
 		else
 			Debug.LogWarning("No Cookies :(");
 	}
@@ -42,44 +44,39 @@ public class QubedServerInterface : MonoBehaviour
 			Debug.LogError(webRep.StatusCode + "\n" + webRep.StatusDescription);
 	}
 	
-	void Poke()
+	QubedBlock GetQube(uint a, uint b)
 	{
 		HttpWebRequest webReq = (HttpWebRequest)WebRequest.Create("http://localhost:9634/blockEditor");
 		webReq.Referer = "http://localhost:9634/blockEditor";
 		webReq.UserAgent = "Mozilla/5.0";
 		webReq.ContentType = "application/qubed; base64";
-		webReq.Headers.Add("aid", "1");
-		webReq.Headers.Add("bid", "0");
+		webReq.Headers.Add("aid", a.ToString());
+		webReq.Headers.Add("bid", b.ToString());
 		
 		webReq.CookieContainer = myCookies;
 		webReq.Method = "GET";
 		
 		HttpWebResponse webRep = (HttpWebResponse)webReq.GetResponse();
-		if(webRep.StatusCode != HttpStatusCode.OK)
-			Debug.LogError(webRep.StatusCode + "\n" + webRep.StatusDescription);
 		
 		// Validate it's what we expect
-		if(webRep.ContentType.Contains("application/qubed;") == false)
-			Debug.LogError("Content Type does not match: " + webRep.ContentType.ToString());
-		
-		// webRep.Headers["szBlock"];
-		// webRep.Headers["szPal"];
-		// webRep.Headers["szLink"];
+		System.Diagnostics.Debug.Assert((webRep.StatusCode == HttpStatusCode.OK), webRep.StatusCode + "\n" + webRep.StatusDescription);
+		System.Diagnostics.Debug.Assert(webRep.ContentType.Contains("application/qubed;"), "Content Type does not match: " + webRep.ContentType.ToString());
 	
 		// All Good
 		Stream stream = webRep.GetResponseStream();
 		BinaryReader binReader = new BinaryReader(stream);
 		byte[] byteStr = binReader.ReadBytes((int)webRep.ContentLength);
-		Debug.Log(byteStr);
 		stream.Close();
 		
+		int palLength = System.Convert.ToInt32(webRep.Headers["szPal"]);
+		int blkLength = System.Convert.ToInt32(webRep.Headers["szBlock"]);
+		int lnkLength = System.Convert.ToInt32(webRep.Headers["szLink"]);
 		
+		QubedBlock myBlock = new QubedBlock(byteStr, palLength, blkLength, lnkLength);
 		
-		System.Buffer.BlockCopy(byteStr, 0, blockData, 0, 512);
-		System.Buffer.BlockCopy(byteStr, 0, blockData, 0, 512);
-		System.Buffer.BlockCopy(byteStr, 0, blockData, 0, 512);
-
+		return myBlock;
 	}
+	
 	/*
 	void PostToGAE()
 	{

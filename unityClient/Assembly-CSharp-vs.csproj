@@ -44,7 +44,15 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\QPalAlpha.cs" />
+     <Compile Include="Assets\QPalColour.cs" />
+     <Compile Include="Assets\QPalShade.cs" />
+     <Compile Include="Assets\QPalSmooth.cs" />
+     <Compile Include="Assets\QubeToMesh.cs" />
+     <Compile Include="Assets\QubedBlock.cs" />
+     <Compile Include="Assets\QubedPal.cs" />
      <Compile Include="Assets\QubedServerInterface.cs" />
+     <None Include="Assets\BlockShader.shader" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

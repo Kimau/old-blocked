@@ -611,14 +611,14 @@ function MakeBlockDomElem(blkBit,i)
   {
     var colour = [1, 1, 1, 1];
     
-    if (blkBit.colour && currBlock.palColour && currBlock.palColour.bits) 
+    if ((blkBit.colour !== undefined) && currBlock.palColour && currBlock.palColour.bits) 
     {
       colour[0] = currBlock.palColour.colours[blkBit.colour][0];
       colour[1] = currBlock.palColour.colours[blkBit.colour][1];
       colour[2] = currBlock.palColour.colours[blkBit.colour][2];
     }
     
-    if (blkBit.shade && currBlock.palShade && currBlock.palShade.bits) 
+    if ((blkBit.shade !== undefined) && currBlock.palShade && currBlock.palShade.bits) 
     {
       var tint = currBlock.palShade.colour;
       var lvl = currBlock.palShade.scale[blkBit.shade] / 100;
@@ -638,7 +638,7 @@ function MakeBlockDomElem(blkBit,i)
       }
     }
     
-    if (blkBit.alpha && currBlock.palAlpha && currBlock.palAlpha.bits) 
+    if ((blkBit.alpha !== undefined) && currBlock.palAlpha && currBlock.palAlpha.bits) 
     {
       colour[3] = currBlock.palAlpha.scale[blkBit.alpha]/100;
     }

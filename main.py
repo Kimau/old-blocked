@@ -196,7 +196,8 @@ class MainHandler(webapp2.RequestHandler):
 		self.response.out.write(blockList.count())
 		self.response.out.write('<div class="blockList"><ul>')
 		for block in blockList:
-			self.response.out.write('<li>#%d : ver[#%d]</li>' % (block.blockID, 0))
+			revList = BlockVer.gql('WHERE ancestor IS :b ORDER BY date DESC', b = block)
+			self.response.out.write('<li>#%d : ver[#%d]</li>' % (block.blockID, revList.count()))
 
 		self.response.out.write('</ul></div>')
 
