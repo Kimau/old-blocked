@@ -127,12 +127,12 @@ public class QubedBlock
 	//-------------------------------------------------------------------
 	// Functions
 	
-	public uint fromXYZ(uint x, uint y, uint z) 
+	public int fromXYZ(uint x, uint y, uint z) 
 	{ 
-		return x + (y*blockSize) + (z*blockSize*blockSize);
+		return (int)(x + (y*blockSize) + (z*blockSize*blockSize));
 	}
 
-	public float[] GetColour(uint i) 
+	public float[] BlockColour(int i) 
 	{
 		uint blkVal = qBits[i];
 		float[] blkColour = defaultColour;
@@ -146,16 +146,20 @@ public class QubedBlock
 	}
 	
 	
-	public float GetAlpha(uint i) 
+	float GetAlpha(uint blkVal) 
 	{ 
-		uint blkVal = qBits[i];
 		if(qPals.ContainsKey(typeof(QPalAlpha)))
 			return Alpha.GetAlpha(blkVal);
 		else
 			return defaultAlpha;
 	}
 	
-	public bool IsVisible(uint i) 
+	public float BlockAlpha(int i)
+	{
+		return GetAlpha(qBits[i]);
+	}
+	
+	public bool BlockVisible(int i) 
 	{ 
 		if((qBits[i] & 1) == 0)
 			return false;
@@ -166,6 +170,6 @@ public class QubedBlock
 		return true;
 	}
 	
-	public bool IsVisible(uint x, uint y, uint z) { return IsVisible(fromXYZ(x,y,z)); }
+	public bool BlockVisible(uint x, uint y, uint z) { return BlockVisible(fromXYZ(x,y,z)); }
 	
 }
