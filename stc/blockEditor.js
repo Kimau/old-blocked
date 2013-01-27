@@ -398,7 +398,7 @@ function PalToBytes(block)
 function BytesToPal(block, data) 
 {
   block.artistID  = BitsToBig(data.subarray(0, 4), 255)[0];
-  block.blockID   = BitsToBig(data.subarray(4, 4), 255)[0];
+  block.blockID   = BitsToBig(data.subarray(4, 8), 255)[0];
   block.size      = data[8];
   
   block.palColour = undefined;
@@ -534,7 +534,7 @@ function BytesToLinks(block, data)
     block.blkBits[flatIDList[i]].link = [flatLinkDataList[i * 2 + 0], flatLinkDataList[i * 2 + 1]];
 }
 
-function processMessage(e) 
+function processGetBlock(e) 
 {
   if (this.status == 200) 
   {
@@ -542,9 +542,9 @@ function processMessage(e)
     lastResponse = this;
     rawResponse = this.response;
     
-    var szBlock = Number(this.getResponseHeader('szBlock'));
-    var szPal   = Number(this.getResponseHeader('szPal'));
-    var szLink  = Number(this.getResponseHeader('szLink'));
+    var szBlock = Number(lastResponse.getResponseHeader('szBlock'));
+    var szPal   = Number(lastResponse.getResponseHeader('szPal'));
+    var szLink  = Number(lastResponse.getResponseHeader('szLink'));
     
     var palRecvData   = new Uint8Array(rawResponse, 0,               szPal);
     var blockRecvData = new Uint8Array(rawResponse, szPal,           szBlock);
@@ -679,7 +679,7 @@ function UpdatePalDisplay()
   // Update Pal Display
   var s = '';
   s += '<span class="artistID">Artist #' + currBlock.artistID + '</span>';
-  s += '<span class="blockID">Block #' + currBlock.artistID + '</span>';
+  s += '<span class="blockID">Block #' + currBlock.blockID + '</span>';
 
   var x = BitMapForBlockBit(currBlock);
   s += '<span class="bitsPerBlock"><b>Bits per Block</b>:';
@@ -814,6 +814,14 @@ function UpdateCubeDisplay()
   SelectLayer($('layerSlider').value);
 }
 
+function processPostBlock()
+{
+  if (this.status == 200) 
+  {
+    alert('Submitted');
+  }
+}
+
 function doJSSubmit() 
 {
   // Assume 8bit max
@@ -839,8 +847,8 @@ function doJSSubmit()
   }
 
   var tempLinkBits = BigToBits(flatLinkList, 255);
-  var linkSendData = new Uint8Array(flatLinkList.length);
-  linkSendData.set(flatLinkList);
+  var linkSendData = new Uint8Array(tempLinkBits.length);
+  linkSendData.set(tempLinkBits);
 
   // Arguments
   var args = 
@@ -873,7 +881,7 @@ function doJSSubmit()
   xhr.open('POST', '/blockEditor' + argToParams(args), true);
   xhr.responseType = 'arraybuffer';
   xhr.setRequestHeader('Content-Type', 'application/octlet;base64');
-  xhr.onload = processMessage;
+  xhr.onload = processPostBlock;
   xhr.send(bugger);
 }
 
@@ -911,7 +919,7 @@ function doJSLoad()
   xhr.open('GET', '/blockEditor' + argToParams(args), true);
   xhr.responseType = 'arraybuffer';
   xhr.setRequestHeader('Content-Type', 'application/octlet;base64');
-  xhr.onload = processMessage;
+  xhr.onload = processGetBlock;
   xhr.send(null);
 }
 

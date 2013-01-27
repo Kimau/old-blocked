@@ -224,6 +224,8 @@ class BlockEditHandler(webapp2.RequestHandler):
 		blockData = rawBody[palDataLength:(palDataLength+blockDataLength)]
 		linkData = rawBody[(palDataLength+blockDataLength):(palDataLength+blockDataLength+linkDataLength)]
 
+		logging.info(str(linkDataLength) + " - " + str(linkData))
+
 		newQ = blockPal.QubedBlock()
 		newQ.ConvertFromBytes(palData)
 		newQ.BytesToLinks(linkData)
@@ -274,12 +276,15 @@ class BlockEditHandler(webapp2.RequestHandler):
 		# Try Get Validate Links
 		lData = []
 		for l in newQ.links:
-			linkBlock = getBlockByID(l[0],l[1])
+			newKey = db.Key.from_path('BlockArtist', 'aid' + str(l[0]), 'Block', 'bid' + str(l[1]))
+			linkBlock = Block.get(newKey)
 			if linkBlock == None:
 				logging.info("That Block does not exsist: #%d #%d" % (l[0], l[1]))
 				self.error(500)
 				return "Link Valid to Validate"
-			lData.append(linkBlock)
+			lData.append(linkBlock.key())
+
+		logging.info(str(len(newQ.links)) + " " + str(len(lData)) + " " + str(lData))
 
 		# Make New Version
 		byteStringPal = json.dumps(newQ.ByteStr(), separators=(',',':'))
@@ -326,6 +331,14 @@ class BlockEditHandler(webapp2.RequestHandler):
 			palBucket = blockPal.QubedBlock()
 			palBucket.ConvertFromByteString(aid,bid, json.loads(lastBlockVer.palData))
 			palBucket.ConvertToBytes()
+
+			# Build Link Data List
+			subList = []
+			for lnkBlockKey in lastBlockVer.linkData:
+				lnkBlock = Block.get(lnkBlockKey)
+				subList.append(lnkBlock.parent().artistID)
+				subList.append(lnkBlock.blockID)
+			subList = blockPal.BigToBits(subList, 255, 0)
 			
 			# logging.info("\n------------------------\n" + str(map(lambda x: ord(x), lastBlockVer.blockData)) + "\n------------------------\n")
 			# logging.info("\n------------------------\n" + str(palBucket.rawPal) + "\n------------------------\n")
@@ -333,9 +346,9 @@ class BlockEditHandler(webapp2.RequestHandler):
 			self.response.headers['Content-Type'] = 'application/qubed; base64'
 			self.response.headers['szBlock'] = str(len(lastBlockVer.blockData))
 			self.response.headers['szPal']   = str(len(palBucket.rawPal))
-			self.response.headers['szLink']  = '0' # Need to Support this
+			self.response.headers['szLink']  = str(len(subList)) 
 
-			self.response.body = reduce(lambda a,b: a + chr(b), palBucket.rawPal, "") + lastBlockVer.blockData
+			self.response.body = reduce(lambda a,b: a + chr(b), palBucket.rawPal, "") + lastBlockVer.blockData + reduce(lambda a,b: a + chr(b), subList, "")
 			return
 
 		#
